@@ -1,5 +1,5 @@
 [package]
-name = "cfworker-template"
+name = "event-forms"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,16 +7,17 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-worker = "0.5"
-# If you need a worker listening cloudflare queue
-# worker = { version = "0.5", features = ["queue"]}
-# serde = { version = "1", features = ["serde_derive"] }
-
-# Remove commentary if you need
-# serde_json = "1"
-# time = { version = "0.3.34", features = ["wasm-bindgen"] }
-# serde = { version = "1", features = ["serde_derive"] }
-# reqwest = { version = "0.12", default-features = false, features = ["json"] }
+worker = { version = "0.5", features = ["d1", "http"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+base64 = "0.22"
+sha2 = "0.10"
+hmac = "0.12"
+hex = "0.4"
+uuid = { version = "1", features = ["v4", "js"] }
+getrandom = { version = "0.2", features = ["js"] }
+urlencoding = "2"
+js-sys = "0.3"
 
 [profile.release]
 opt-level = "s"

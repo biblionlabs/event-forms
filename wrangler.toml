@@ -1,12 +1,7 @@
-name = "cfworker-template"
+name = "event-forms"
 workers_dev = true
 main = "build/worker/shim.mjs"
 compatibility_date = "2025-06-10"
-
-# Docs: https://developers.cloudflare.com/workers/configuration/routing/routes/
-# routes = [
-#     { pattern = "subdomain.example.com/*", zone_name = "example.com" },
-# ]
 
 [build]
 command = "worker-build --release"
@@ -19,11 +14,37 @@ globs = ["**/*.wasm"]
 type = "CompiledWasm"
 fallthrough = false
 
-# Cron Triggers
-# Docs: https://developers.cloudflare.com/workers/platform/triggers/cron-triggers/
-# Configuration: https://developers.cloudflare.com/workers/wrangler/configuration/#triggers
-# [triggers]
-# crons = ["0 22 * * *"]
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "event-forms-db"
+database_id = "local-dev-db"
 
-# Docs: https://developers.cloudflare.com/workers/configuration/environment-variables/
+# Durable Objects bindings
+[durable_objects]
+bindings = [
+    { name = "STATS_DO", class_name = "StatsObject" },
+    { name = "REALTIME_DO", class_name = "RealtimeObject" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["StatsObject", "RealtimeObject"]
+
+# Environment variables
+[vars]
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "change-me-in-production"
+ENCRYPTION_KEY = "32-byte-secret-key-change-in-prod"
+COOKIE_DOMAIN = ""
+
+# Local development environment
 [env.local.vars]
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "admin123"
+ENCRYPTION_KEY = "local-dev-32-byte-secret-key!!"
+COOKIE_DOMAIN = "localhost"
+
+# Production environment (override with secrets)
+[env.production.vars]
+COOKIE_DOMAIN = ""
