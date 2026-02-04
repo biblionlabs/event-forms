@@ -7,11 +7,6 @@
       url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    wrangler = {
-      # Use 4.19.1
-      url = "github:ryand56/wrangler/1141a859c59e05ceb901d14790f0f75a6c5de3f5";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs = {
@@ -34,7 +29,6 @@
           pkgs = import nixpkgs {inherit system;};
           crane = inputs.crane.mkLib pkgs;
           fenix = inputs.fenix.packages.${system};
-          wrangler-fix = inputs.wrangler.packages.${system};
         }
     );
 }

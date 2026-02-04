@@ -77,7 +77,7 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
         // Home redirect
         // ====================================================================
         .get_async("/", |_, _| async move {
-            Response::redirect_with_status(worker::Url::parse("https://example.com/admin")?, 302)
+            Response::redirect(worker::Url::parse("/admin")?)
         })
 
         .run(req, env)

@@ -4,13 +4,12 @@
   stdenv ? pkgs.stdenv,
   crane,
   fenix,
-  wrangler-fix,
   ...
 }: let
   # fenix: rustup replacement for reproducible builds
   toolchain = fenix.fromToolchainFile {
     file = ./rust-toolchain.toml;
-    sha256 = "sha256-KUm16pHj+cRedf8vxs/Hd2YWxpOrWZ7UOrwhILdSJBU=";
+    sha256 = "sha256-vra6TkHITpwRyA5oBKAHSX0Mi6CBDNQD+ryPSpxFsfg=";
   };
   # crane: cargo and artifacts manager
   craneLib = crane.overrideToolchain toolchain;
@@ -57,6 +56,6 @@ in {
     packages =
       nativeBuildInputs
       ++ buildInputs
-      ++ [wrangler-fix.wrangler];
+      ++ [pkgs.wrangler pkgs.cargo-edit];
   };
 }

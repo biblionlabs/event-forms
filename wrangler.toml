@@ -6,6 +6,9 @@ compatibility_date = "2025-06-10"
 [build]
 command = "worker-build --release"
 
+[placement]
+mode = "smart"
+
 [observability]
 enabled = true
 
@@ -17,8 +20,8 @@ fallthrough = false
 # D1 Database binding
 [[d1_databases]]
 binding = "DB"
-database_name = "event-forms-db"
-database_id = "local-dev-db"
+database_name = "event-forms"
+database_id = "f93785ad-fcec-4a71-aa1d-62361b2f9b27"
 
 # Durable Objects bindings
 [durable_objects]
