@@ -11,6 +11,7 @@ pub struct Form {
     pub description: Option<String>,
     pub slug: String,
     pub is_active: bool,
+    pub tags: Vec<String>,
     pub session_complete_fields: Vec<String>,
     pub cookie_fields: Vec<String>,
     pub fingerprint_fields: Vec<Vec<String>>,
@@ -232,6 +233,7 @@ impl ResponseStatus {
         }
     }
 
+    #[allow(dead_code)]
     pub fn as_str(&self) -> &str {
         match self {
             ResponseStatus::InProgress => "in_progress",
@@ -288,6 +290,8 @@ pub struct CreateFormRequest {
     pub description: Option<String>,
     pub slug: String,
     #[serde(default)]
+    pub tags: Vec<String>,
+    #[serde(default)]
     pub session_complete_fields: Vec<String>,
     #[serde(default)]
     pub cookie_fields: Vec<String>,
@@ -327,6 +331,7 @@ pub struct UpdateFormRequest {
     pub description: Option<String>,
     pub slug: Option<String>,
     pub is_active: Option<bool>,
+    pub tags: Option<Vec<String>>,
     pub session_complete_fields: Option<Vec<String>>,
     pub cookie_fields: Option<Vec<String>>,
     pub fingerprint_fields: Option<Vec<Vec<String>>>,

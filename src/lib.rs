@@ -32,6 +32,7 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
         // ====================================================================
         .get_async("/f/:slug/:step", handle_form_view)
         .post_async("/f/:slug/:step/submit", handle_form_submit)
+        .get_async("/f/:slug/:step/complete", handle_step_complete)
         .get_async("/f/:slug/complete", handle_form_complete)
 
         // ====================================================================
@@ -734,6 +735,27 @@ async fn handle_form_submit(mut req: Request, ctx: worker::RouteContext<()>) -> 
         }
         Ok(response)
     }
+}
+
+async fn handle_step_complete(_req: Request, ctx: worker::RouteContext<()>) -> Result<Response> {
+    let slug = ctx.param("slug").unwrap();
+    let step_number: i32 = ctx.param("step").unwrap().parse().unwrap_or(1);
+
+    let db = get_db(&ctx.env)?;
+
+    // Get form
+    let form = match db.get_form_by_slug(slug).await? {
+        Some(f) => f,
+        None => return html_response(not_found_html()),
+    };
+
+    // Get step
+    let step = match db.get_step_by_number(&form.id, step_number).await? {
+        Some(s) => s,
+        None => return html_response(not_found_html()),
+    };
+
+    html_response(step_complete_html(&form, &step, step_number + 1))
 }
 
 async fn handle_form_complete(_req: Request, ctx: worker::RouteContext<()>) -> Result<Response> {

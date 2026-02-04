@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{FORM_NAME}} - Paso {{STEP_NUMBER}}</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: {{BG_COLOR}};
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+        }
+        .header {
+            background: {{PRIMARY_COLOR}};
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .header img {
+            max-height: 60px;
+            margin-bottom: 1rem;
+        }
+        .header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 0.875rem;
+        }
+        .progress {
+            padding: 1rem 1.5rem;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+        .progress-bar {
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-bar .fill {
+            height: 100%;
+            background: {{PRIMARY_COLOR}};
+            width: {{PROGRESS}}%;
+            transition: width 0.3s;
+        }
+        .content {
+            padding: 1.5rem;
+        }
+        .step-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #111827;
+        }
+        .step-description {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: {{PRIMARY_COLOR}};
+            box-shadow: 0 0 0 3px {{PRIMARY_COLOR}}22;
+        }
+        .form-group input.pre-filled {
+            background: #f0f9ff;
+            border-color: #0ea5e9;
+        }
+        .form-group .required {
+            color: #ef4444;
+        }
+        .form-group .help-text {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+        .radio-group, .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .radio-item, .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .radio-item:hover, .checkbox-item:hover {
+            border-color: {{PRIMARY_COLOR}};
+        }
+        .radio-item input, .checkbox-item input {
+            width: auto;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 0.875rem;
+            background: {{PRIMARY_COLOR}};
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-submit:hover {
+            filter: brightness(1.1);
+        }
+        .btn-submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .error-message {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            display: none;
+        }
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid white;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            {{LOGO}}
+            <h1>{{FORM_NAME}}</h1>
+        </div>
+        <div class="progress">
+            <div class="progress-info">
+                <span>Paso {{STEP_NUMBER}} de {{TOTAL_STEPS}}</span>
+                <span>{{PROGRESS}}%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="fill"></div>
+            </div>
+        </div>
+        <div class="content">
+            <h2 class="step-title">{{STEP_TITLE}}</h2>
+            {{STEP_DESCRIPTION}}
+            <div class="error-message" id="error-msg"></div>
+            <form id="step-form" method="POST" action="/f/{{SLUG}}/{{STEP_NUMBER}}/submit">
+                {{FIELDS}}
+                <button type="submit" class="btn-submit" id="submit-btn">
+                    {{SUBMIT_TEXT}}
+                </button>
+            </form>
+        </div>
+    </div>
+    <script>
+        const form = document.getElementById('step-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const errorMsg = document.getElementById('error-msg');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading"></span>Enviando...';
+            errorMsg.style.display = 'none';
+
+            try {
+                const formData = new FormData(form);
+                const data = {};
+                formData.forEach((value, key) => {
+                    if (key.endsWith('[]')) {
+                        const realKey = key.slice(0, -2);
+                        if (!data[realKey]) data[realKey] = [];
+                        data[realKey].push(value);
+                    } else {
+                        data[key] = value;
+                    }
+                });
+
+                let res;
+                try {
+                    res = await fetch(form.action, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fields: data })
+                    });
+                } catch (networkErr) {
+                    throw new Error('Error de red. Verifica tu conexion.');
+                }
+
+                // Get response text first to handle both JSON and non-JSON responses
+                const responseText = await res.text();
+                let result;
+
+                try {
+                    result = JSON.parse(responseText);
+                } catch (parseErr) {
+                    // Non-JSON response
+                    if (!res.ok) {
+                        if (responseText.includes('Binding') && responseText.includes('undefined')) {
+                            throw new Error('Base de datos no disponible. Intenta de nuevo.');
+                        }
+                        throw new Error(`Error del servidor (${res.status})`);
+                    }
+                    throw new Error('Error al procesar la respuesta');
+                }
+
+                if (!res.ok) {
+                    throw new Error(result.error || 'Error al enviar el formulario');
+                }
+
+                if (result.data && result.data.redirect) {
+                    window.location.href = result.data.redirect;
+                } else if (result.success) {
+                    window.location.reload();
+                } else {
+                    throw new Error(result.error || 'Error desconocido');
+                }
+            } catch (err) {
+                errorMsg.textContent = err.message;
+                errorMsg.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '{{SUBMIT_TEXT}}';
+            }
+        });
+
+        // Pattern validation
+        document.querySelectorAll('input[data-pattern]').forEach(input => {
+            input.addEventListener('invalid', (e) => {
+                if (input.validity.patternMismatch) {
+                    input.setCustomValidity(input.dataset.patternMsg || 'Formato invalido');
+                }
+            });
+            input.addEventListener('input', () => input.setCustomValidity(''));
+        });
+    </script>
+</body>
+</html>

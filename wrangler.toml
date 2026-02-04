@@ -23,17 +23,6 @@ binding = "DB"
 database_name = "event-forms"
 database_id = "f93785ad-fcec-4a71-aa1d-62361b2f9b27"
 
-# Durable Objects bindings
-[durable_objects]
-bindings = [
-    { name = "STATS_DO", class_name = "StatsObject" },
-    { name = "REALTIME_DO", class_name = "RealtimeObject" }
-]
-
-[[migrations]]
-tag = "v1"
-new_classes = ["StatsObject", "RealtimeObject"]
-
 # Environment variables
 [vars]
 ADMIN_USERNAME = "admin"
@@ -42,11 +31,19 @@ ENCRYPTION_KEY = "32-byte-secret-key-change-in-prod"
 COOKIE_DOMAIN = ""
 
 # Local development environment
+[env.local]
+workers_dev = true
+
 [env.local.vars]
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
 ENCRYPTION_KEY = "local-dev-32-byte-secret-key!!"
-COOKIE_DOMAIN = "localhost"
+COOKIE_DOMAIN = ""
+
+[[env.local.d1_databases]]
+binding = "DB"
+database_name = "event-forms-db"
+database_id = "local-dev-db"
 
 # Production environment (override with secrets)
 [env.production.vars]

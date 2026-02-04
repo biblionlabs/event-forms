@@ -49,6 +49,8 @@ impl Database {
         let id = uuid::Uuid::new_v4().to_string();
         let now = now_iso();
 
+        let tags_json = serde_json::to_string(&req.tags)
+            .unwrap_or_else(|_| "[]".to_string());
         let session_fields_json = serde_json::to_string(&req.session_complete_fields)
             .unwrap_or_else(|_| r#"["email"]"#.to_string());
         let cookie_fields_json = serde_json::to_string(&req.cookie_fields)
@@ -57,10 +59,10 @@ impl Database {
             .unwrap_or_else(|_| r#"[["email"]]"#.to_string());
 
         let stmt = self.db.prepare(
-            "INSERT INTO forms (id, name, description, slug, session_complete_fields, cookie_fields,
+            "INSERT INTO forms (id, name, description, slug, tags, session_complete_fields, cookie_fields,
              fingerprint_fields, thank_you_title, thank_you_message, thank_you_image_url,
              primary_color, logo_url, background_color, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)"
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)"
         );
 
         stmt.bind(&[
@@ -68,6 +70,7 @@ impl Database {
             req.name.clone().into(),
             req.description.clone().into(),
             req.slug.clone().into(),
+            tags_json.into(),
             session_fields_json.into(),
             cookie_fields_json.into(),
             fingerprint_fields_json.into(),
@@ -89,6 +92,7 @@ impl Database {
             description: req.description,
             slug: req.slug,
             is_active: true,
+            tags: req.tags,
             session_complete_fields: req.session_complete_fields,
             cookie_fields: req.cookie_fields,
             fingerprint_fields: req.fingerprint_fields,
@@ -134,6 +138,7 @@ impl Database {
         let description = req.description.or(existing.description);
         let slug = req.slug.unwrap_or(existing.slug);
         let is_active = req.is_active.unwrap_or(existing.is_active);
+        let tags = req.tags.unwrap_or(existing.tags);
         let session_complete_fields = req.session_complete_fields.unwrap_or(existing.session_complete_fields);
         let cookie_fields = req.cookie_fields.unwrap_or(existing.cookie_fields);
         let fingerprint_fields = req.fingerprint_fields.unwrap_or(existing.fingerprint_fields);
@@ -145,11 +150,11 @@ impl Database {
         let background_color = req.background_color.unwrap_or(existing.background_color);
 
         let stmt = self.db.prepare(
-            "UPDATE forms SET name = ?1, description = ?2, slug = ?3, is_active = ?4,
-             session_complete_fields = ?5, cookie_fields = ?6, fingerprint_fields = ?7,
-             thank_you_title = ?8, thank_you_message = ?9, thank_you_image_url = ?10,
-             primary_color = ?11, logo_url = ?12, background_color = ?13, updated_at = ?14
-             WHERE id = ?15"
+            "UPDATE forms SET name = ?1, description = ?2, slug = ?3, is_active = ?4, tags = ?5,
+             session_complete_fields = ?6, cookie_fields = ?7, fingerprint_fields = ?8,
+             thank_you_title = ?9, thank_you_message = ?10, thank_you_image_url = ?11,
+             primary_color = ?12, logo_url = ?13, background_color = ?14, updated_at = ?15
+             WHERE id = ?16"
         );
 
         stmt.bind(&[
@@ -157,6 +162,7 @@ impl Database {
             description.clone().into(),
             slug.clone().into(),
             (is_active as i32).into(),
+            serde_json::to_string(&tags).unwrap().into(),
             serde_json::to_string(&session_complete_fields).unwrap().into(),
             serde_json::to_string(&cookie_fields).unwrap().into(),
             serde_json::to_string(&fingerprint_fields).unwrap().into(),
@@ -178,6 +184,7 @@ impl Database {
             description,
             slug,
             is_active,
+            tags,
             session_complete_fields,
             cookie_fields,
             fingerprint_fields,
@@ -722,6 +729,7 @@ impl Database {
         Ok(result.map(|r| r.user_profile_id))
     }
 
+    #[allow(dead_code)]
     pub async fn fingerprint_exists(&self, fp_hash: &str) -> Result<bool> {
         let stmt = self.db.prepare("SELECT COUNT(*) as count FROM user_fingerprints WHERE fingerprint_hash = ?1");
         let result = stmt.bind(&[fp_hash.into()])?.first::<CountRow>(None).await?;
@@ -781,6 +789,7 @@ impl Database {
         })
     }
 
+    #[allow(dead_code)]
     pub async fn get_form_response(&self, id: &str) -> Result<Option<FormResponse>> {
         let stmt = self.db.prepare("SELECT * FROM form_responses WHERE id = ?1");
         let result = stmt.bind(&[id.into()])?.first::<FormResponseRow>(None).await?;
@@ -852,6 +861,7 @@ impl Database {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub async fn get_field_responses(&self, response_id: &str) -> Result<Vec<FieldResponse>> {
         let stmt = self.db.prepare("SELECT * FROM field_responses WHERE form_response_id = ?1");
         let results = stmt.bind(&[response_id.into()])?.all().await?;
@@ -912,6 +922,7 @@ impl Database {
             description: None,
             slug: "".to_string(),
             is_active: false,
+            tags: vec![],
             session_complete_fields: vec![],
             cookie_fields: vec![],
             fingerprint_fields: vec![],
@@ -1052,6 +1063,7 @@ impl Database {
         Ok(rows.into_iter().map(|r| r.into()).collect())
     }
 
+    #[allow(dead_code)]
     pub async fn count_users(&self) -> Result<i32> {
         let stmt = self.db.prepare("SELECT COUNT(*) as count FROM user_profiles");
         let result = stmt.first::<CountRow>(None).await?;
@@ -1094,6 +1106,7 @@ struct FormRow {
     description: Option<String>,
     slug: String,
     is_active: i32,
+    tags: String,
     session_complete_fields: String,
     cookie_fields: String,
     fingerprint_fields: String,
@@ -1115,6 +1128,7 @@ impl From<FormRow> for Form {
             description: r.description,
             slug: r.slug,
             is_active: r.is_active != 0,
+            tags: serde_json::from_str(&r.tags).unwrap_or_default(),
             session_complete_fields: serde_json::from_str(&r.session_complete_fields).unwrap_or_default(),
             cookie_fields: serde_json::from_str(&r.cookie_fields).unwrap_or_default(),
             fingerprint_fields: serde_json::from_str(&r.fingerprint_fields).unwrap_or_default(),
