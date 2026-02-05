@@ -966,6 +966,136 @@
         </div>
     </div>
 
+    <!-- Edit Step Modal -->
+    <div id="modal-edit-step" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Paso</h3>
+                <button class="modal-close" onclick="closeModal('edit-step')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-step-id">
+                <div class="form-group">
+                    <label>Título del Paso *</label>
+                    <input type="text" id="edit-step-title">
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="edit-step-description" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Número de Paso</label>
+                    <input type="number" id="edit-step-number" min="1">
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox" id="edit-step-show-completion"> Mostrar mensaje al completar este paso</label>
+                </div>
+                <div id="edit-step-completion-fields" style="display:none;">
+                    <div class="form-group">
+                        <label>Título de Completitud</label>
+                        <input type="text" id="edit-step-completion-title">
+                    </div>
+                    <div class="form-group">
+                        <label>Mensaje de Completitud</label>
+                        <textarea id="edit-step-completion-message" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>URL de Imagen</label>
+                        <input type="url" id="edit-step-completion-image">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('edit-step')">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveStep()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Field Modal -->
+    <div id="modal-edit-field" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Campo</h3>
+                <button class="modal-close" onclick="closeModal('edit-field')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-field-id">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre del Campo *</label>
+                        <input type="text" id="edit-field-name">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Campo *</label>
+                        <select id="edit-field-type">
+                            <option value="text">Texto</option>
+                            <option value="email">Email</option>
+                            <option value="phone">Teléfono</option>
+                            <option value="number">Número</option>
+                            <option value="textarea">Área de Texto</option>
+                            <option value="select">Selección</option>
+                            <option value="radio">Radio</option>
+                            <option value="checkbox">Checkbox</option>
+                            <option value="date">Fecha</option>
+                            <option value="hidden">Oculto</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Etiqueta *</label>
+                    <input type="text" id="edit-field-label">
+                </div>
+                <div class="form-group">
+                    <label>Placeholder</label>
+                    <input type="text" id="edit-field-placeholder">
+                </div>
+                <div class="form-group">
+                    <label>Texto de Ayuda</label>
+                    <input type="text" id="edit-field-help">
+                </div>
+                <div class="form-group" id="edit-field-options-group" style="display:none;">
+                    <label>Opciones (JSON)</label>
+                    <textarea id="edit-field-options" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Validación (JSON)</label>
+                    <textarea id="edit-field-validation" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Valor por Defecto</label>
+                    <input type="text" id="edit-field-default-value">
+                </div>
+                <div class="form-group">
+                    <label>Orden de Visualización</label>
+                    <input type="number" id="edit-field-display-order" min="0">
+                </div>
+                <div class="checkbox-group">
+                    <label class="checkbox-item"><input type="checkbox" id="edit-field-required"> Requerido</label>
+                    <label class="checkbox-item"><input type="checkbox" id="edit-field-identifier"> Identificador</label>
+                    <label class="checkbox-item"><input type="checkbox" id="edit-field-cookie"> Guardar en Cookie</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('edit-field')">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveField()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Response Modal -->
+    <div id="modal-view-response" class="modal">
+        <div class="modal-content" style="max-width:700px;">
+            <div class="modal-header">
+                <h3>Detalle de Respuesta</h3>
+                <button class="modal-close" onclick="closeModal('view-response')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="response-detail-content"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- User History Modal -->
     <div id="modal-user-history" class="modal">
         <div class="modal-content" style="max-width:800px;">
@@ -1372,6 +1502,63 @@
             }
         }
 
+        // Edit Step
+        async function editStep(stepId) {
+            try {
+                const step = await api('/steps/' + stepId);
+                document.getElementById('edit-step-id').value = step.id;
+                document.getElementById('edit-step-title').value = step.title || '';
+                document.getElementById('edit-step-description').value = step.description || '';
+                document.getElementById('edit-step-number').value = step.step_number;
+                document.getElementById('edit-step-show-completion').checked = step.show_completion_message || false;
+                document.getElementById('edit-step-completion-title').value = step.completion_title || '';
+                document.getElementById('edit-step-completion-message').value = step.completion_message || '';
+                document.getElementById('edit-step-completion-image').value = step.completion_image_url || '';
+                document.getElementById('edit-step-completion-fields').style.display = step.show_completion_message ? 'block' : 'none';
+                openModal('edit-step');
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        document.getElementById('edit-step-show-completion').addEventListener('change', function() {
+            document.getElementById('edit-step-completion-fields').style.display = this.checked ? 'block' : 'none';
+        });
+
+        async function saveStep() {
+            const stepId = document.getElementById('edit-step-id').value;
+            const data = {
+                title: document.getElementById('edit-step-title').value,
+                description: document.getElementById('edit-step-description').value || null,
+                step_number: parseInt(document.getElementById('edit-step-number').value),
+                show_completion_message: document.getElementById('edit-step-show-completion').checked,
+                completion_title: document.getElementById('edit-step-completion-title').value || null,
+                completion_message: document.getElementById('edit-step-completion-message').value || null,
+                completion_image_url: document.getElementById('edit-step-completion-image').value || null
+            };
+
+            if (!data.title) {
+                showToast('El título es requerido', 'error');
+                return;
+            }
+
+            try {
+                await api('/steps/' + stepId, 'PUT', data);
+                showToast('Paso actualizado');
+                closeModal('edit-step');
+                steps = await api('/forms/' + currentFormId + '/steps');
+                renderSteps();
+                renderQRCodes();
+
+                // Update step selector
+                const stepSelect = document.getElementById('fields-step-select');
+                stepSelect.innerHTML = '<option value="">Seleccionar paso...</option>' +
+                    steps.map(s => `<option value="${s.id}">Paso ${s.step_number}: ${s.title}</option>`).join('');
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
         // Fields
         document.getElementById('new-field-type').addEventListener('change', function() {
             const optionsGroup = document.getElementById('field-options-group');
@@ -1413,6 +1600,7 @@
                             ${f.is_identifier ? '<span class="badge badge-info">ID</span>' : ''}
                             ${f.store_in_cookie ? '<span class="badge badge-warning">Cookie</span>' : ''}
                         </div>
+                        <button class="btn btn-secondary btn-sm" onclick="editField('${f.id}')">Editar</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteField('${f.id}')">×</button>
                     </div>
                 `).join('');
@@ -1472,6 +1660,120 @@
                 showToast('Campo eliminado');
                 fields = await api('/steps/' + currentStepId + '/fields');
                 renderFields();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        // Edit Field
+        async function editField(fieldId) {
+            try {
+                const field = await api('/fields/' + fieldId);
+                document.getElementById('edit-field-id').value = field.id;
+                document.getElementById('edit-field-name').value = field.field_name || '';
+                document.getElementById('edit-field-type').value = field.field_type || 'text';
+                document.getElementById('edit-field-label').value = field.label || '';
+                document.getElementById('edit-field-placeholder').value = field.placeholder || '';
+                document.getElementById('edit-field-help').value = field.help_text || '';
+                document.getElementById('edit-field-options').value = field.options ? JSON.stringify(field.options, null, 2) : '';
+                document.getElementById('edit-field-validation').value = field.validation ? JSON.stringify(field.validation, null, 2) : '';
+                document.getElementById('edit-field-default-value').value = field.default_value || '';
+                document.getElementById('edit-field-display-order').value = field.display_order || 0;
+                document.getElementById('edit-field-required').checked = field.is_required || false;
+                document.getElementById('edit-field-identifier').checked = field.is_identifier || false;
+                document.getElementById('edit-field-cookie').checked = field.store_in_cookie || false;
+                document.getElementById('edit-field-options-group').style.display =
+                    ['select', 'radio', 'checkbox'].includes(field.field_type) ? 'block' : 'none';
+                openModal('edit-field');
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        document.getElementById('edit-field-type').addEventListener('change', function() {
+            document.getElementById('edit-field-options-group').style.display =
+                ['select', 'radio', 'checkbox'].includes(this.value) ? 'block' : 'none';
+        });
+
+        async function saveField() {
+            const fieldId = document.getElementById('edit-field-id').value;
+            const validation = document.getElementById('edit-field-validation').value;
+            const options = document.getElementById('edit-field-options').value;
+
+            const data = {
+                field_name: document.getElementById('edit-field-name').value,
+                field_type: document.getElementById('edit-field-type').value,
+                label: document.getElementById('edit-field-label').value,
+                placeholder: document.getElementById('edit-field-placeholder').value || null,
+                help_text: document.getElementById('edit-field-help').value || null,
+                validation: validation ? JSON.parse(validation) : {},
+                options: options ? JSON.parse(options) : null,
+                default_value: document.getElementById('edit-field-default-value').value || null,
+                display_order: parseInt(document.getElementById('edit-field-display-order').value) || 0,
+                is_required: document.getElementById('edit-field-required').checked,
+                is_identifier: document.getElementById('edit-field-identifier').checked,
+                store_in_cookie: document.getElementById('edit-field-cookie').checked
+            };
+
+            if (!data.field_name || !data.label) {
+                showToast('Nombre y etiqueta son requeridos', 'error');
+                return;
+            }
+
+            try {
+                await api('/fields/' + fieldId, 'PUT', data);
+                showToast('Campo actualizado');
+                closeModal('edit-field');
+                fields = await api('/steps/' + currentStepId + '/fields');
+                renderFields();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        // View Response
+        async function viewResponse(responseId) {
+            try {
+                const container = document.getElementById('response-detail-content');
+                // Find the response in the current list
+                const responses = await api('/forms/' + currentFormId + '/responses');
+                const response = responses.find(r => r.id === responseId);
+
+                if (!response) {
+                    showToast('Respuesta no encontrada', 'error');
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="stats-grid" style="margin-bottom:1rem;">
+                        <div class="stat-card">
+                            <div class="label">Estado</div>
+                            <div class="value" style="font-size:1rem;"><span class="badge ${response.status === 'completed' ? 'badge-success' : response.status === 'abandoned' ? 'badge-danger' : 'badge-warning'}">${response.status}</span></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">Progreso</div>
+                            <div class="value" style="font-size:1.25rem;">Paso ${response.current_step} / ${response.total_steps || '?'}</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Información</span></div>
+                        <table>
+                            <tbody>
+                                <tr><td><strong>ID</strong></td><td><code>${response.id}</code></td></tr>
+                                <tr><td><strong>Usuario</strong></td><td>${response.user_profile_id || 'Anónimo'}</td></tr>
+                                <tr><td><strong>Sesión</strong></td><td><code>${response.user_session_id || '-'}</code></td></tr>
+                                <tr><td><strong>Dispositivo</strong></td><td>${response.device_type || '-'}</td></tr>
+                                <tr><td><strong>País</strong></td><td>${response.country || '-'}</td></tr>
+                                <tr><td><strong>Ciudad</strong></td><td>${response.city || '-'}</td></tr>
+                                <tr><td><strong>IP</strong></td><td>${response.ip_address || '-'}</td></tr>
+                                <tr><td><strong>Iniciado</strong></td><td>${new Date(response.started_at).toLocaleString()}</td></tr>
+                                <tr><td><strong>Completado</strong></td><td>${response.completed_at ? new Date(response.completed_at).toLocaleString() : '-'}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                openModal('view-response');
             } catch (err) {
                 showToast(err.message, 'error');
             }

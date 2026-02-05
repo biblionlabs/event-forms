@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS forms (
     description TEXT,
     slug TEXT UNIQUE NOT NULL,
     is_active INTEGER DEFAULT 1,
+    -- Tags for categorization (JSON array)
+    tags TEXT DEFAULT '[]',
     -- Session completion configuration (JSON array of field names that define a complete session)
     session_complete_fields TEXT DEFAULT '["email"]',
     -- Fields to store as persistent cookies (JSON array)

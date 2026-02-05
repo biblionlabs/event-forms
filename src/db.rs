@@ -1,6 +1,24 @@
 use crate::models::*;
 use serde_json::json;
+use wasm_bindgen::JsValue;
 use worker::*;
+
+/// Convert an Option<String> to JsValue::NULL instead of JsValue::UNDEFINED.
+/// D1 does not support undefined values in bindings.
+fn nullable(opt: Option<String>) -> JsValue {
+    match opt {
+        Some(s) => JsValue::from_str(&s),
+        None => JsValue::NULL,
+    }
+}
+
+/// Convert an Option<&str> to JsValue::NULL instead of JsValue::UNDEFINED.
+fn nullable_ref(opt: Option<&str>) -> JsValue {
+    match opt {
+        Some(s) => JsValue::from_str(s),
+        None => JsValue::NULL,
+    }
+}
 
 /// Get current timestamp as ISO string
 fn now_iso() -> String {
@@ -61,14 +79,14 @@ impl Database {
         stmt.bind(&[
             id.clone().into(),
             req.name.clone().into(),
-            req.description.clone().into(),
+            nullable(req.description.clone()),
             req.slug.clone().into(),
             tags_json.into(),
             req.thank_you_title.clone().into(),
             req.thank_you_message.clone().into(),
-            req.thank_you_image_url.clone().into(),
+            nullable(req.thank_you_image_url.clone()),
             req.primary_color.clone().into(),
-            req.logo_url.clone().into(),
+            nullable(req.logo_url.clone()),
             req.background_color.clone().into(),
             now.clone().into(),
             now.clone().into(),
@@ -142,15 +160,15 @@ impl Database {
 
         stmt.bind(&[
             name.clone().into(),
-            description.clone().into(),
+            nullable(description.clone()),
             slug.clone().into(),
             (is_active as i32).into(),
             serde_json::to_string(&tags).unwrap().into(),
             thank_you_title.clone().into(),
             thank_you_message.clone().into(),
-            thank_you_image_url.clone().into(),
+            nullable(thank_you_image_url.clone()),
             primary_color.clone().into(),
-            logo_url.clone().into(),
+            nullable(logo_url.clone()),
             background_color.clone().into(),
             now.clone().into(),
             id.into(),
@@ -207,10 +225,10 @@ impl Database {
             form_id.into(),
             step_number.into(),
             req.title.clone().into(),
-            req.description.clone().into(),
-            req.completion_title.clone().into(),
-            req.completion_message.clone().into(),
-            req.completion_image_url.clone().into(),
+            nullable(req.description.clone()),
+            nullable(req.completion_title.clone()),
+            nullable(req.completion_message.clone()),
+            nullable(req.completion_image_url.clone()),
             (req.show_completion_message as i32).into(),
             now.clone().into(),
             now.clone().into(),
@@ -276,11 +294,11 @@ impl Database {
 
         stmt.bind(&[
             title.clone().into(),
-            description.clone().into(),
+            nullable(description.clone()),
             step_number.into(),
-            completion_title.clone().into(),
-            completion_message.clone().into(),
-            completion_image_url.clone().into(),
+            nullable(completion_title.clone()),
+            nullable(completion_message.clone()),
+            nullable(completion_image_url.clone()),
             (show_completion_message as i32).into(),
             now.clone().into(),
             id.into(),
@@ -341,16 +359,16 @@ impl Database {
             req.field_name.clone().into(),
             req.field_type.clone().into(),
             req.label.clone().into(),
-            req.placeholder.clone().into(),
-            req.help_text.clone().into(),
+            nullable(req.placeholder.clone()),
+            nullable(req.help_text.clone()),
             validation_json.into(),
-            options_json.into(),
+            nullable(options_json),
             (req.is_required as i32).into(),
             (req.is_identifier as i32).into(),
             (req.store_in_cookie as i32).into(),
             req.display_order.into(),
-            conditional_json.into(),
-            req.default_value.clone().into(),
+            nullable(conditional_json),
+            nullable(req.default_value.clone()),
             now.clone().into(),
             now.clone().into(),
         ])?
@@ -450,16 +468,16 @@ impl Database {
             field_name.clone().into(),
             field_type.as_str().into(),
             label.clone().into(),
-            placeholder.clone().into(),
-            help_text.clone().into(),
+            nullable(placeholder.clone()),
+            nullable(help_text.clone()),
             validation_json.into(),
-            options_json.into(),
+            nullable(options_json),
             (is_required as i32).into(),
             (is_identifier as i32).into(),
             (store_in_cookie as i32).into(),
             display_order.into(),
-            conditional_json.into(),
-            default_value.clone().into(),
+            nullable(conditional_json),
+            nullable(default_value.clone()),
             now.clone().into(),
             id.into(),
         ])?
@@ -600,21 +618,21 @@ impl Database {
 
         stmt.bind(&[
             id.into(),
-            user_profile_id.into(),
+            nullable_ref(user_profile_id),
             0.into(),
             "{}".into(),
-            request_info.ip_address.clone().into(),
-            request_info.user_agent.clone().into(),
-            request_info.country.clone().into(),
-            request_info.city.clone().into(),
-            request_info.region.clone().into(),
-            request_info.timezone.clone().into(),
-            request_info.device_type.clone().into(),
-            request_info.browser.clone().into(),
-            request_info.os.clone().into(),
+            nullable(request_info.ip_address.clone()),
+            nullable(request_info.user_agent.clone()),
+            nullable(request_info.country.clone()),
+            nullable(request_info.city.clone()),
+            nullable(request_info.region.clone()),
+            nullable(request_info.timezone.clone()),
+            nullable(request_info.device_type.clone()),
+            nullable(request_info.browser.clone()),
+            nullable(request_info.os.clone()),
             now.clone().into(),
             now.clone().into(),
-            expires.clone().into(),
+            nullable(expires.clone()),
             now.clone().into(),
         ])?
         .run()
@@ -690,7 +708,7 @@ impl Database {
             user_profile_id.into(),
             fp_type.into(),
             fp_hash.into(),
-            source_values.into(),
+            nullable_ref(source_values),
             now.into(),
         ])?
         .run()
@@ -731,15 +749,15 @@ impl Database {
             id.clone().into(),
             form_id.into(),
             session_id.into(),
-            profile_id.into(),
+            nullable_ref(profile_id),
             "in_progress".into(),
             1.into(),
             total_steps.into(),
             now.clone().into(),
-            request_info.ip_address.clone().into(),
-            request_info.country.clone().into(),
-            request_info.city.clone().into(),
-            request_info.device_type.clone().into(),
+            nullable(request_info.ip_address.clone()),
+            nullable(request_info.country.clone()),
+            nullable(request_info.city.clone()),
+            nullable(request_info.device_type.clone()),
             now.clone().into(),
             now.clone().into(),
         ])?
@@ -864,20 +882,20 @@ impl Database {
             id.into(),
             form_id.into(),
             step_number.into(),
-            session_id.into(),
-            profile_id.into(),
+            nullable_ref(session_id),
+            nullable_ref(profile_id),
             (is_new_user as i32).into(),
             (is_new_session as i32).into(),
-            request_info.ip_address.clone().into(),
-            request_info.user_agent.clone().into(),
-            request_info.country.clone().into(),
-            request_info.city.clone().into(),
-            request_info.region.clone().into(),
-            request_info.timezone.clone().into(),
-            request_info.device_type.clone().into(),
-            request_info.browser.clone().into(),
-            request_info.os.clone().into(),
-            request_info.referrer.clone().into(),
+            nullable(request_info.ip_address.clone()),
+            nullable(request_info.user_agent.clone()),
+            nullable(request_info.country.clone()),
+            nullable(request_info.city.clone()),
+            nullable(request_info.region.clone()),
+            nullable(request_info.timezone.clone()),
+            nullable(request_info.device_type.clone()),
+            nullable(request_info.browser.clone()),
+            nullable(request_info.os.clone()),
+            nullable(request_info.referrer.clone()),
             now.into(),
         ])?
         .run()
