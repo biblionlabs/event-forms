@@ -792,7 +792,7 @@
 
     <!-- Create Form Modal -->
     <div id="modal-create-form" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width:700px;">
             <div class="modal-header">
                 <h3>Crear Nuevo Formulario</h3>
                 <button class="modal-close" onclick="closeModal('create-form')">&times;</button>
@@ -809,12 +809,70 @@
                 </div>
                 <div class="form-group">
                     <label>Descripción</label>
-                    <textarea id="new-form-description" rows="3" placeholder="Descripción opcional"></textarea>
+                    <textarea id="new-form-description" rows="2" placeholder="Descripción opcional"></textarea>
                 </div>
                 <div class="form-group">
                     <label>Tags</label>
                     <input type="text" id="new-form-tags" placeholder="tag1, tag2, tag3">
                     <div class="help-text">Separados por comas</div>
+                </div>
+
+                <!-- Advanced Settings Toggle -->
+                <div style="margin:1rem 0;border-top:1px solid var(--gray-200);padding-top:1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="toggleAdvancedSettings()" style="width:100%;">
+                        <span id="advanced-toggle-text">Mostrar Configuración Avanzada</span>
+                        <svg id="advanced-toggle-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="transition:transform 0.2s;"><path d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                </div>
+
+                <!-- Advanced Settings Section -->
+                <div id="advanced-settings" style="display:none;">
+                    <h4 style="margin:1rem 0 0.75rem;color:var(--gray-700);font-size:0.875rem;text-transform:uppercase;letter-spacing:0.05em;">Apariencia</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Color Principal</label>
+                            <input type="color" id="new-form-color" value="#3B82F6">
+                        </div>
+                        <div class="form-group">
+                            <label>Color de Fondo</label>
+                            <input type="color" id="new-form-bg-color" value="#F9FAFB">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>URL del Logo</label>
+                        <input type="url" id="new-form-logo" placeholder="https://ejemplo.com/logo.png">
+                    </div>
+
+                    <h4 style="margin:1.5rem 0 0.75rem;color:var(--gray-700);font-size:0.875rem;text-transform:uppercase;letter-spacing:0.05em;">Mensaje de Agradecimiento</h4>
+                    <div class="form-group">
+                        <label>Título</label>
+                        <input type="text" id="new-form-thank-title" value="¡Gracias!" placeholder="¡Gracias!">
+                    </div>
+                    <div class="form-group">
+                        <label>Mensaje</label>
+                        <textarea id="new-form-thank-message" rows="2" placeholder="Tu respuesta ha sido registrada.">Tu respuesta ha sido registrada.</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>URL de Imagen (opcional)</label>
+                        <input type="url" id="new-form-thank-image" placeholder="https://ejemplo.com/gracias.png">
+                    </div>
+
+                    <h4 style="margin:1.5rem 0 0.75rem;color:var(--gray-700);font-size:0.875rem;text-transform:uppercase;letter-spacing:0.05em;">Configuración de Sesión</h4>
+                    <div class="form-group">
+                        <label>Campos para Completar Sesión</label>
+                        <input type="text" id="new-form-session-fields" placeholder='["email"]'>
+                        <div class="help-text">JSON array de nombres de campo. Cuando el usuario proporcione estos campos, su sesión se considerará completa.</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Campos para Almacenar en Cookies</label>
+                        <input type="text" id="new-form-cookie-fields" placeholder='["email", "phone"]'>
+                        <div class="help-text">JSON array de nombres de campo. Estos campos se guardarán en cookies para pre-llenar futuros formularios.</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Campos para Fingerprinting</label>
+                        <input type="text" id="new-form-fingerprint-fields" placeholder='[["email"], ["full_name", "school"]]'>
+                        <div class="help-text">JSON array de arrays. Combinaciones de campos que identifican únicamente a un usuario.</div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1099,6 +1157,44 @@
             }
         }
 
+        // Toggle advanced settings in create form modal
+        function toggleAdvancedSettings() {
+            const section = document.getElementById('advanced-settings');
+            const text = document.getElementById('advanced-toggle-text');
+            const icon = document.getElementById('advanced-toggle-icon');
+
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                text.textContent = 'Ocultar Configuración Avanzada';
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                section.style.display = 'none';
+                text.textContent = 'Mostrar Configuración Avanzada';
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // Reset create form modal
+        function resetCreateFormModal() {
+            document.getElementById('new-form-name').value = '';
+            document.getElementById('new-form-slug').value = '';
+            document.getElementById('new-form-description').value = '';
+            document.getElementById('new-form-tags').value = '';
+            document.getElementById('new-form-color').value = '#3B82F6';
+            document.getElementById('new-form-bg-color').value = '#F9FAFB';
+            document.getElementById('new-form-logo').value = '';
+            document.getElementById('new-form-thank-title').value = '¡Gracias!';
+            document.getElementById('new-form-thank-message').value = 'Tu respuesta ha sido registrada.';
+            document.getElementById('new-form-thank-image').value = '';
+            document.getElementById('new-form-session-fields').value = '';
+            document.getElementById('new-form-cookie-fields').value = '';
+            document.getElementById('new-form-fingerprint-fields').value = '';
+            // Reset advanced settings visibility
+            document.getElementById('advanced-settings').style.display = 'none';
+            document.getElementById('advanced-toggle-text').textContent = 'Mostrar Configuración Avanzada';
+            document.getElementById('advanced-toggle-icon').style.transform = 'rotate(0deg)';
+        }
+
         async function createForm() {
             const name = document.getElementById('new-form-name').value;
             const slug = document.getElementById('new-form-slug').value;
@@ -1111,14 +1207,64 @@
                 return;
             }
 
+            // Get advanced settings
+            const primaryColor = document.getElementById('new-form-color').value;
+            const backgroundColor = document.getElementById('new-form-bg-color').value;
+            const logoUrl = document.getElementById('new-form-logo').value || null;
+            const thankYouTitle = document.getElementById('new-form-thank-title').value || '¡Gracias!';
+            const thankYouMessage = document.getElementById('new-form-thank-message').value || 'Tu respuesta ha sido registrada.';
+            const thankYouImageUrl = document.getElementById('new-form-thank-image').value || null;
+
+            // Parse JSON fields with error handling
+            let sessionCompleteFields = [];
+            let cookieFields = [];
+            let fingerprintFields = [];
+
             try {
-                const form = await api('/forms', 'POST', { name, slug, description, tags });
+                const sessionVal = document.getElementById('new-form-session-fields').value.trim();
+                if (sessionVal) sessionCompleteFields = JSON.parse(sessionVal);
+            } catch (e) {
+                showToast('Error en formato de "Campos para Completar Sesión". Usa formato JSON: ["campo1", "campo2"]', 'error');
+                return;
+            }
+
+            try {
+                const cookieVal = document.getElementById('new-form-cookie-fields').value.trim();
+                if (cookieVal) cookieFields = JSON.parse(cookieVal);
+            } catch (e) {
+                showToast('Error en formato de "Campos para Cookies". Usa formato JSON: ["campo1", "campo2"]', 'error');
+                return;
+            }
+
+            try {
+                const fpVal = document.getElementById('new-form-fingerprint-fields').value.trim();
+                if (fpVal) fingerprintFields = JSON.parse(fpVal);
+            } catch (e) {
+                showToast('Error en formato de "Campos para Fingerprinting". Usa formato JSON: [["campo1"], ["campo2", "campo3"]]', 'error');
+                return;
+            }
+
+            const formData = {
+                name,
+                slug,
+                description: description || null,
+                tags,
+                primary_color: primaryColor,
+                background_color: backgroundColor,
+                logo_url: logoUrl,
+                thank_you_title: thankYouTitle,
+                thank_you_message: thankYouMessage,
+                thank_you_image_url: thankYouImageUrl,
+                session_complete_fields: sessionCompleteFields,
+                cookie_fields: cookieFields,
+                fingerprint_fields: fingerprintFields
+            };
+
+            try {
+                const form = await api('/forms', 'POST', formData);
                 showToast('Formulario creado');
                 closeModal('create-form');
-                document.getElementById('new-form-name').value = '';
-                document.getElementById('new-form-slug').value = '';
-                document.getElementById('new-form-description').value = '';
-                document.getElementById('new-form-tags').value = '';
+                resetCreateFormModal();
                 editForm(form.id);
             } catch (err) {
                 showToast(err.message, 'error');

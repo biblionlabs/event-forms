@@ -183,17 +183,6 @@ pub struct UserSession {
     pub created_at: String,
 }
 
-#[allow(dead_code)]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserFingerprint {
-    pub id: String,
-    pub user_profile_id: String,
-    pub fingerprint_type: String,
-    pub fingerprint_hash: String,
-    pub source_values: Option<String>,
-    pub created_at: String,
-}
-
 // ============================================================================
 // Response Models
 // ============================================================================
@@ -234,7 +223,6 @@ impl ResponseStatus {
         }
     }
 
-    #[allow(dead_code)]
     pub fn as_str(&self) -> &str {
         match self {
             ResponseStatus::InProgress => "in_progress",
@@ -253,33 +241,6 @@ pub struct FieldResponse {
     pub field_name: String,
     pub field_value: Option<String>,
     pub submitted_at: String,
-}
-
-// ============================================================================
-// Analytics Models
-// ============================================================================
-
-#[allow(dead_code)]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScanEvent {
-    pub id: String,
-    pub form_id: String,
-    pub step_number: i32,
-    pub user_session_id: Option<String>,
-    pub user_profile_id: Option<String>,
-    pub is_new_user: bool,
-    pub is_new_session: bool,
-    pub ip_address: Option<String>,
-    pub user_agent: Option<String>,
-    pub country: Option<String>,
-    pub city: Option<String>,
-    pub region: Option<String>,
-    pub timezone: Option<String>,
-    pub device_type: Option<String>,
-    pub browser: Option<String>,
-    pub os: Option<String>,
-    pub referrer: Option<String>,
-    pub scanned_at: String,
 }
 
 // ============================================================================
@@ -524,18 +485,6 @@ impl RequestInfo {
         })
         .to_string()
     }
-}
-
-// ============================================================================
-// Cookie Data
-// ============================================================================
-
-#[allow(dead_code)]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct CookieData {
-    pub session_id: Option<String>,
-    pub fingerprint: Option<String>,
-    pub known_fields: serde_json::Value,
 }
 
 // ============================================================================
