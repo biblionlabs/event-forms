@@ -676,6 +676,11 @@
                         <label>Descripción</label>
                         <textarea id="form-description" rows="3" placeholder="Descripción opcional del formulario"></textarea>
                     </div>
+                    <div class="form-group">
+                        <label>Tags / Categorías</label>
+                        <div class="help-text">Etiquetas separadas por comas para organizar formularios (ej: evento, registro, 2024)</div>
+                        <input type="text" id="form-tags" placeholder="tag1, tag2, tag3">
+                    </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label>Color Principal</label>
@@ -805,6 +810,11 @@
                 <div class="form-group">
                     <label>Descripción</label>
                     <textarea id="new-form-description" rows="3" placeholder="Descripción opcional"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Tags</label>
+                    <input type="text" id="new-form-tags" placeholder="tag1, tag2, tag3">
+                    <div class="help-text">Separados por comas</div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1093,6 +1103,8 @@
             const name = document.getElementById('new-form-name').value;
             const slug = document.getElementById('new-form-slug').value;
             const description = document.getElementById('new-form-description').value;
+            const tagsInput = document.getElementById('new-form-tags').value;
+            const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
 
             if (!name || !slug) {
                 showToast('Nombre y slug son requeridos', 'error');
@@ -1100,12 +1112,13 @@
             }
 
             try {
-                const form = await api('/forms', 'POST', { name, slug, description });
+                const form = await api('/forms', 'POST', { name, slug, description, tags });
                 showToast('Formulario creado');
                 closeModal('create-form');
                 document.getElementById('new-form-name').value = '';
                 document.getElementById('new-form-slug').value = '';
                 document.getElementById('new-form-description').value = '';
+                document.getElementById('new-form-tags').value = '';
                 editForm(form.id);
             } catch (err) {
                 showToast(err.message, 'error');
@@ -1125,6 +1138,7 @@
                 document.getElementById('form-slug').value = form.slug;
                 document.getElementById('slug-preview').textContent = form.slug;
                 document.getElementById('form-description').value = form.description || '';
+                document.getElementById('form-tags').value = (form.tags || []).join(', ');
                 document.getElementById('form-color').value = form.primary_color;
                 document.getElementById('form-bg-color').value = form.background_color;
                 document.getElementById('form-logo').value = form.logo_url || '';
@@ -1152,10 +1166,14 @@
         }
 
         async function saveForm() {
+            const tagsInput = document.getElementById('form-tags').value;
+            const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
+
             const data = {
                 name: document.getElementById('form-name').value,
                 slug: document.getElementById('form-slug').value,
                 description: document.getElementById('form-description').value || null,
+                tags: tags,
                 primary_color: document.getElementById('form-color').value,
                 background_color: document.getElementById('form-bg-color').value,
                 logo_url: document.getElementById('form-logo').value || null,

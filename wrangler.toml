@@ -20,31 +20,29 @@ fallthrough = false
 # D1 Database binding
 [[d1_databases]]
 binding = "DB"
-database_name = "event-forms"
-database_id = "f93785ad-fcec-4a71-aa1d-62361b2f9b27"
+database_name = "event-forms-db"
+database_id = "local-dev"
 
-# Environment variables
+# Environment variables (for local development)
 [vars]
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "change-me-in-production"
-ENCRYPTION_KEY = "32-byte-secret-key-change-in-prod"
-COOKIE_DOMAIN = ""
-
-# Local development environment
-[env.local]
-workers_dev = true
-
-[env.local.vars]
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
 ENCRYPTION_KEY = "local-dev-32-byte-secret-key!!"
 COOKIE_DOMAIN = ""
 
-[[env.local.d1_databases]]
+# Production environment - create with: wrangler d1 create event-forms-db
+[env.production]
+workers_dev = false
+
+[[env.production.d1_databases]]
 binding = "DB"
 database_name = "event-forms-db"
-database_id = "local-dev-db"
+# Replace with actual database_id after running: wrangler d1 create event-forms-db
+database_id = "YOUR_PRODUCTION_DATABASE_ID"
 
-# Production environment (override with secrets)
 [env.production.vars]
+ADMIN_USERNAME = "admin"
 COOKIE_DOMAIN = ""
+# Set these as secrets with:
+# wrangler secret put ADMIN_PASSWORD --env production
+# wrangler secret put ENCRYPTION_KEY --env production

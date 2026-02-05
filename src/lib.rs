@@ -112,14 +112,14 @@ async fn check_auth(req: &Request, env: &Env) -> Option<Response> {
 
 fn json_response<T: serde::Serialize>(data: T) -> Result<Response> {
     let body = serde_json::to_string(&ApiResponse::success(data))?;
-    let mut headers = worker::Headers::new();
+    let headers = worker::Headers::new();
     headers.set("Content-Type", "application/json")?;
     Ok(Response::ok(body)?.with_headers(headers))
 }
 
 fn json_error(message: &str, status: u16) -> Result<Response> {
     let body = serde_json::to_string(&ApiResponse::<()>::error(message))?;
-    let mut headers = worker::Headers::new();
+    let headers = worker::Headers::new();
     headers.set("Content-Type", "application/json")?;
     Ok(Response::ok(body)?.with_headers(headers).with_status(status))
 }

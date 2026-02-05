@@ -33,7 +33,7 @@ pub fn check_basic_auth(req: &Request, username: &str, password: &str) -> bool {
 
 /// Return 401 Unauthorized response with WWW-Authenticate header
 pub fn unauthorized_response() -> Result<Response> {
-    let mut headers = worker::Headers::new();
+    let headers = worker::Headers::new();
     headers.set("WWW-Authenticate", "Basic realm=\"Event Forms Admin\"")?;
     headers.set("Content-Type", "text/html; charset=utf-8")?;
 

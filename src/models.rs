@@ -183,6 +183,7 @@ pub struct UserSession {
     pub created_at: String,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserFingerprint {
     pub id: String,
@@ -258,6 +259,7 @@ pub struct FieldResponse {
 // Analytics Models
 // ============================================================================
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScanEvent {
     pub id: String,
@@ -528,6 +530,7 @@ impl RequestInfo {
 // Cookie Data
 // ============================================================================
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CookieData {
     pub session_id: Option<String>,
