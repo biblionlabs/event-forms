@@ -9,17 +9,11 @@ CREATE TABLE IF NOT EXISTS forms (
     description TEXT,
     slug TEXT UNIQUE NOT NULL,
     is_active INTEGER DEFAULT 1,
-    -- Tags for segmentation (comma-separated or JSON array)
+    -- Tags for segmentation (JSON array)
     tags TEXT DEFAULT '[]',
-    -- Session completion configuration (JSON array of field names that define a complete session)
-    session_complete_fields TEXT DEFAULT '["email"]',
-    -- Fields to store as persistent cookies (JSON array)
-    cookie_fields TEXT DEFAULT '["email", "phone"]',
-    -- Fingerprint fields configuration (JSON array of field combinations for matching)
-    fingerprint_fields TEXT DEFAULT '[["email"]]',
     -- Thank you configuration
-    thank_you_title TEXT DEFAULT 'Thank you!',
-    thank_you_message TEXT DEFAULT 'Your response has been recorded.',
+    thank_you_title TEXT DEFAULT '¡Gracias!',
+    thank_you_message TEXT DEFAULT 'Tu respuesta ha sido registrada.',
     thank_you_image_url TEXT,
     -- Styling
     primary_color TEXT DEFAULT '#3B82F6',
@@ -37,11 +31,10 @@ CREATE TABLE IF NOT EXISTS form_steps (
     step_number INTEGER NOT NULL,
     title TEXT NOT NULL,
     description TEXT,
-    -- Step completion message
+    -- Step completion message (shown after completing this step)
     completion_title TEXT,
     completion_message TEXT,
     completion_image_url TEXT,
-    -- Whether to show completion message after this step
     show_completion_message INTEGER DEFAULT 0,
     -- Metadata
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -56,16 +49,21 @@ CREATE TABLE IF NOT EXISTS form_fields (
     step_id TEXT NOT NULL,
     form_id TEXT NOT NULL,
     field_name TEXT NOT NULL,
-    field_type TEXT NOT NULL,
+    field_type TEXT NOT NULL, -- text, email, phone, number, textarea, select, radio, checkbox, date, hidden
     label TEXT NOT NULL,
     placeholder TEXT,
     help_text TEXT,
+    -- Validation rules (JSON object with min_length, max_length, pattern, etc.)
     validation TEXT DEFAULT '{}',
+    -- Options for select/radio/checkbox (JSON array of {value, label} objects)
     options TEXT,
     is_required INTEGER DEFAULT 0,
+    -- For user identification/fingerprinting
     is_identifier INTEGER DEFAULT 0,
+    -- Store this field value in cookies for pre-filling
     store_in_cookie INTEGER DEFAULT 0,
     display_order INTEGER DEFAULT 0,
+    -- Conditional display rules (JSON)
     conditional TEXT,
     default_value TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -77,7 +75,7 @@ CREATE TABLE IF NOT EXISTS form_fields (
 -- User profiles - unified user data across all forms
 CREATE TABLE IF NOT EXISTS user_profiles (
     id TEXT PRIMARY KEY,
-    fingerprints TEXT DEFAULT '{}',
+    -- Known data collected from identifier fields (JSON)
     known_data TEXT DEFAULT '{}',
     first_seen_at TEXT DEFAULT CURRENT_TIMESTAMP,
     first_form_id TEXT,
@@ -98,7 +96,7 @@ CREATE TABLE IF NOT EXISTS user_sessions (
     id TEXT PRIMARY KEY,
     user_profile_id TEXT,
     is_complete INTEGER DEFAULT 0,
-    completed_fields TEXT DEFAULT '[]',
+    -- Data collected during this session (JSON)
     session_data TEXT DEFAULT '{}',
     ip_address TEXT,
     user_agent TEXT,
@@ -116,13 +114,13 @@ CREATE TABLE IF NOT EXISTS user_sessions (
     FOREIGN KEY (user_profile_id) REFERENCES user_profiles(id) ON DELETE SET NULL
 );
 
--- Form responses - completed form submissions
+-- Form responses - tracks form submission progress
 CREATE TABLE IF NOT EXISTS form_responses (
     id TEXT PRIMARY KEY,
     form_id TEXT NOT NULL,
     user_session_id TEXT,
     user_profile_id TEXT,
-    status TEXT DEFAULT 'in_progress',
+    status TEXT DEFAULT 'in_progress', -- in_progress, completed, abandoned
     current_step INTEGER DEFAULT 1,
     total_steps INTEGER,
     started_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -138,7 +136,7 @@ CREATE TABLE IF NOT EXISTS form_responses (
     FOREIGN KEY (user_profile_id) REFERENCES user_profiles(id) ON DELETE SET NULL
 );
 
--- Field responses - individual field values within a form response
+-- Field responses - individual field values
 CREATE TABLE IF NOT EXISTS field_responses (
     id TEXT PRIMARY KEY,
     form_response_id TEXT NOT NULL,
@@ -152,7 +150,7 @@ CREATE TABLE IF NOT EXISTS field_responses (
     FOREIGN KEY (step_id) REFERENCES form_steps(id) ON DELETE CASCADE
 );
 
--- QR scan events - every time a QR code is scanned
+-- QR scan events - analytics for each scan
 CREATE TABLE IF NOT EXISTS scan_events (
     id TEXT PRIMARY KEY,
     form_id TEXT NOT NULL,
@@ -177,11 +175,11 @@ CREATE TABLE IF NOT EXISTS scan_events (
     FOREIGN KEY (user_profile_id) REFERENCES user_profiles(id) ON DELETE SET NULL
 );
 
--- User fingerprints index - for fast matching
+-- User fingerprints - for matching returning users
 CREATE TABLE IF NOT EXISTS user_fingerprints (
     id TEXT PRIMARY KEY,
     user_profile_id TEXT NOT NULL,
-    fingerprint_type TEXT NOT NULL,
+    fingerprint_type TEXT NOT NULL, -- email, phone, name_school, etc.
     fingerprint_hash TEXT NOT NULL,
     source_values TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -194,6 +192,8 @@ CREATE INDEX IF NOT EXISTS idx_forms_active ON forms(is_active);
 CREATE INDEX IF NOT EXISTS idx_form_steps_form ON form_steps(form_id, step_number);
 CREATE INDEX IF NOT EXISTS idx_form_fields_step ON form_fields(step_id, display_order);
 CREATE INDEX IF NOT EXISTS idx_form_fields_form ON form_fields(form_id);
+CREATE INDEX IF NOT EXISTS idx_form_fields_identifier ON form_fields(is_identifier);
+CREATE INDEX IF NOT EXISTS idx_form_fields_cookie ON form_fields(store_in_cookie);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_profile ON user_sessions(user_profile_id);
 CREATE INDEX IF NOT EXISTS idx_form_responses_form ON form_responses(form_id);
 CREATE INDEX IF NOT EXISTS idx_form_responses_session ON form_responses(user_session_id);

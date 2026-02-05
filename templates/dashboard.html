@@ -715,22 +715,15 @@
                 </div>
                 <div class="card">
                     <div class="card-header">
-                        <span class="card-title">Configuración de Sesión</span>
+                        <span class="card-title">Configuración de Campos</span>
                     </div>
-                    <div class="form-group">
-                        <label>Campos para Completar Sesión</label>
-                        <div class="help-text">Cuando el usuario proporcione estos campos, su sesión se considerará completa</div>
-                        <input type="text" id="session-complete-fields" placeholder='["email"]'>
-                    </div>
-                    <div class="form-group">
-                        <label>Campos para Almacenar en Cookies</label>
-                        <div class="help-text">Estos campos se guardarán en cookies para pre-llenar futuros formularios</div>
-                        <input type="text" id="cookie-fields" placeholder='["email", "phone"]'>
-                    </div>
-                    <div class="form-group">
-                        <label>Campos para Fingerprinting</label>
-                        <div class="help-text">Combinaciones de campos que identifican únicamente a un usuario (JSON array de arrays)</div>
-                        <input type="text" id="fingerprint-fields" placeholder='[["email"], ["full_name", "school", "age"]]'>
+                    <div class="help-text" style="padding:0.75rem;">
+                        <p style="margin:0 0 0.5rem;"><strong>Nota:</strong> Las configuraciones de identificación y cookies se manejan a nivel de campo individual:</p>
+                        <ul style="margin:0;padding-left:1.25rem;">
+                            <li><strong>Identificador:</strong> Marca campos como identificadores para vincular usuarios entre sesiones (ej: email, teléfono)</li>
+                            <li><strong>Guardar en cookie:</strong> Marca campos para pre-llenar en futuras visitas</li>
+                        </ul>
+                        <p style="margin:0.5rem 0 0;">Estas opciones están disponibles al crear o editar un campo.</p>
                     </div>
                 </div>
             </div>
@@ -857,21 +850,8 @@
                         <input type="url" id="new-form-thank-image" placeholder="https://ejemplo.com/gracias.png">
                     </div>
 
-                    <h4 style="margin:1.5rem 0 0.75rem;color:var(--gray-700);font-size:0.875rem;text-transform:uppercase;letter-spacing:0.05em;">Configuración de Sesión</h4>
-                    <div class="form-group">
-                        <label>Campos para Completar Sesión</label>
-                        <input type="text" id="new-form-session-fields" placeholder='["email"]'>
-                        <div class="help-text">JSON array de nombres de campo. Cuando el usuario proporcione estos campos, su sesión se considerará completa.</div>
-                    </div>
-                    <div class="form-group">
-                        <label>Campos para Almacenar en Cookies</label>
-                        <input type="text" id="new-form-cookie-fields" placeholder='["email", "phone"]'>
-                        <div class="help-text">JSON array de nombres de campo. Estos campos se guardarán en cookies para pre-llenar futuros formularios.</div>
-                    </div>
-                    <div class="form-group">
-                        <label>Campos para Fingerprinting</label>
-                        <input type="text" id="new-form-fingerprint-fields" placeholder='[["email"], ["full_name", "school"]]'>
-                        <div class="help-text">JSON array de arrays. Combinaciones de campos que identifican únicamente a un usuario.</div>
+                    <div class="help-text" style="margin-top:1rem;padding:0.75rem;background:var(--gray-100);border-radius:0.375rem;">
+                        <strong>Nota:</strong> Las configuraciones de cookies, fingerprinting e identificación se configuran a nivel de campo individual. Al crear o editar campos, podrás marcarlos como "Identificador" o "Guardar en cookie".
                     </div>
                 </div>
             </div>
@@ -1186,9 +1166,6 @@
             document.getElementById('new-form-thank-title').value = '¡Gracias!';
             document.getElementById('new-form-thank-message').value = 'Tu respuesta ha sido registrada.';
             document.getElementById('new-form-thank-image').value = '';
-            document.getElementById('new-form-session-fields').value = '';
-            document.getElementById('new-form-cookie-fields').value = '';
-            document.getElementById('new-form-fingerprint-fields').value = '';
             // Reset advanced settings visibility
             document.getElementById('advanced-settings').style.display = 'none';
             document.getElementById('advanced-toggle-text').textContent = 'Mostrar Configuración Avanzada';
@@ -1215,35 +1192,6 @@
             const thankYouMessage = document.getElementById('new-form-thank-message').value || 'Tu respuesta ha sido registrada.';
             const thankYouImageUrl = document.getElementById('new-form-thank-image').value || null;
 
-            // Parse JSON fields with error handling
-            let sessionCompleteFields = [];
-            let cookieFields = [];
-            let fingerprintFields = [];
-
-            try {
-                const sessionVal = document.getElementById('new-form-session-fields').value.trim();
-                if (sessionVal) sessionCompleteFields = JSON.parse(sessionVal);
-            } catch (e) {
-                showToast('Error en formato de "Campos para Completar Sesión". Usa formato JSON: ["campo1", "campo2"]', 'error');
-                return;
-            }
-
-            try {
-                const cookieVal = document.getElementById('new-form-cookie-fields').value.trim();
-                if (cookieVal) cookieFields = JSON.parse(cookieVal);
-            } catch (e) {
-                showToast('Error en formato de "Campos para Cookies". Usa formato JSON: ["campo1", "campo2"]', 'error');
-                return;
-            }
-
-            try {
-                const fpVal = document.getElementById('new-form-fingerprint-fields').value.trim();
-                if (fpVal) fingerprintFields = JSON.parse(fpVal);
-            } catch (e) {
-                showToast('Error en formato de "Campos para Fingerprinting". Usa formato JSON: [["campo1"], ["campo2", "campo3"]]', 'error');
-                return;
-            }
-
             const formData = {
                 name,
                 slug,
@@ -1254,10 +1202,7 @@
                 logo_url: logoUrl,
                 thank_you_title: thankYouTitle,
                 thank_you_message: thankYouMessage,
-                thank_you_image_url: thankYouImageUrl,
-                session_complete_fields: sessionCompleteFields,
-                cookie_fields: cookieFields,
-                fingerprint_fields: fingerprintFields
+                thank_you_image_url: thankYouImageUrl
             };
 
             try {
@@ -1285,15 +1230,12 @@
                 document.getElementById('slug-preview').textContent = form.slug;
                 document.getElementById('form-description').value = form.description || '';
                 document.getElementById('form-tags').value = (form.tags || []).join(', ');
-                document.getElementById('form-color').value = form.primary_color;
-                document.getElementById('form-bg-color').value = form.background_color;
+                document.getElementById('form-color').value = form.primary_color || '#3B82F6';
+                document.getElementById('form-bg-color').value = form.background_color || '#F9FAFB';
                 document.getElementById('form-logo').value = form.logo_url || '';
-                document.getElementById('thank-you-title').value = form.thank_you_title;
-                document.getElementById('thank-you-message').value = form.thank_you_message;
+                document.getElementById('thank-you-title').value = form.thank_you_title || '¡Gracias!';
+                document.getElementById('thank-you-message').value = form.thank_you_message || 'Tu respuesta ha sido registrada.';
                 document.getElementById('thank-you-image').value = form.thank_you_image_url || '';
-                document.getElementById('session-complete-fields').value = JSON.stringify(form.session_complete_fields);
-                document.getElementById('cookie-fields').value = JSON.stringify(form.cookie_fields);
-                document.getElementById('fingerprint-fields').value = JSON.stringify(form.fingerprint_fields);
 
                 // Render steps
                 renderSteps();
@@ -1325,10 +1267,7 @@
                 logo_url: document.getElementById('form-logo').value || null,
                 thank_you_title: document.getElementById('thank-you-title').value,
                 thank_you_message: document.getElementById('thank-you-message').value,
-                thank_you_image_url: document.getElementById('thank-you-image').value || null,
-                session_complete_fields: JSON.parse(document.getElementById('session-complete-fields').value || '[]'),
-                cookie_fields: JSON.parse(document.getElementById('cookie-fields').value || '[]'),
-                fingerprint_fields: JSON.parse(document.getElementById('fingerprint-fields').value || '[]')
+                thank_you_image_url: document.getElementById('thank-you-image').value || null
             };
 
             try {

@@ -12,9 +12,6 @@ pub struct Form {
     pub slug: String,
     pub is_active: bool,
     pub tags: Vec<String>,
-    pub session_complete_fields: Vec<String>,
-    pub cookie_fields: Vec<String>,
-    pub fingerprint_fields: Vec<Vec<String>>,
     pub thank_you_title: String,
     pub thank_you_message: String,
     pub thank_you_image_url: Option<String>,
@@ -145,7 +142,6 @@ pub struct FieldConditional {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserProfile {
     pub id: String,
-    pub fingerprints: serde_json::Value,
     pub known_data: serde_json::Value,
     pub first_seen_at: String,
     pub first_form_id: Option<String>,
@@ -166,7 +162,6 @@ pub struct UserSession {
     pub id: String,
     pub user_profile_id: Option<String>,
     pub is_complete: bool,
-    pub completed_fields: Vec<String>,
     pub session_data: serde_json::Value,
     pub ip_address: Option<String>,
     pub user_agent: Option<String>,
@@ -254,12 +249,6 @@ pub struct CreateFormRequest {
     pub slug: String,
     #[serde(default)]
     pub tags: Vec<String>,
-    #[serde(default)]
-    pub session_complete_fields: Vec<String>,
-    #[serde(default)]
-    pub cookie_fields: Vec<String>,
-    #[serde(default)]
-    pub fingerprint_fields: Vec<Vec<String>>,
     #[serde(default = "default_thank_you_title")]
     pub thank_you_title: String,
     #[serde(default = "default_thank_you_message")]
@@ -273,11 +262,11 @@ pub struct CreateFormRequest {
 }
 
 fn default_thank_you_title() -> String {
-    "Thank you!".to_string()
+    "¡Gracias!".to_string()
 }
 
 fn default_thank_you_message() -> String {
-    "Your response has been recorded.".to_string()
+    "Tu respuesta ha sido registrada.".to_string()
 }
 
 fn default_primary_color() -> String {
@@ -295,9 +284,6 @@ pub struct UpdateFormRequest {
     pub slug: Option<String>,
     pub is_active: Option<bool>,
     pub tags: Option<Vec<String>>,
-    pub session_complete_fields: Option<Vec<String>>,
-    pub cookie_fields: Option<Vec<String>>,
-    pub fingerprint_fields: Option<Vec<Vec<String>>>,
     pub thank_you_title: Option<String>,
     pub thank_you_message: Option<String>,
     pub thank_you_image_url: Option<String>,

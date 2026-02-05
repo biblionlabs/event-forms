@@ -608,8 +608,15 @@ async fn handle_form_submit(mut req: Request, ctx: worker::RouteContext<()>) -> 
         }
     }
 
+    // Get identifier fields for fingerprinting (from field-level config)
+    let identifier_fields = db.list_identifier_fields(&form.id).await?;
+    let fingerprint_configs: Vec<Vec<String>> = identifier_fields
+        .iter()
+        .map(|f| vec![f.field_name.clone()])
+        .collect();
+
     // Generate fingerprints based on current data
-    let fingerprints = session_manager.generate_fingerprints(&merged_data, &form.fingerprint_fields);
+    let fingerprints = session_manager.generate_fingerprints(&merged_data, &fingerprint_configs);
 
     // Try to find existing user by fingerprint
     let mut user_profile_id = session.user_profile_id.clone();
@@ -653,24 +660,16 @@ async fn handle_form_submit(mut req: Request, ctx: worker::RouteContext<()>) -> 
         new_fingerprint = fingerprints.first().map(|(_, h)| h.clone());
     }
 
-    // Check if session is complete
-    let is_session_complete = session_manager.is_session_complete(&merged_data, &form.session_complete_fields);
-
-    // Update completed fields
-    let mut completed_fields: Vec<String> = session.completed_fields.clone();
-    for field in &form.session_complete_fields {
-        if merged_data.get(field).and_then(|v| v.as_str()).map(|s| !s.is_empty()).unwrap_or(false) {
-            if !completed_fields.contains(field) {
-                completed_fields.push(field.clone());
-            }
-        }
-    }
+    // Session is complete when user has a profile with identifier fields filled
+    let is_session_complete = user_profile_id.is_some() && !fingerprints.is_empty();
 
     // Update session
-    db.update_session_data(&session_id, &merged_data, &completed_fields, is_session_complete).await?;
+    db.update_session_data(&session_id, &merged_data, is_session_complete).await?;
 
-    // Get cookie fields to store
-    let cookie_data = session_manager.get_cookie_fields(&merged_data, &form.cookie_fields);
+    // Get cookie fields to store (from field-level config)
+    let cookie_fields = db.list_cookie_fields(&form.id).await?;
+    let cookie_field_names: Vec<String> = cookie_fields.iter().map(|f| f.field_name.clone()).collect();
+    let cookie_data = session_manager.get_cookie_fields(&merged_data, &cookie_field_names);
 
     // Build response cookies
     let cookies = session_manager.build_response_cookies(&session_id, new_fingerprint.as_deref(), Some(&cookie_data));
