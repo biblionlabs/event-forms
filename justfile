@@ -11,7 +11,7 @@ default:
 
 # Start local development server
 dev:
-    wrangler dev --env local
+    wrangler dev --local
 
 # Build the project
 build:
@@ -30,20 +30,46 @@ lint:
     cargo clippy --target wasm32-unknown-unknown -- -D warnings
 
 # ============================================================================
-# Database (D1)
+# Database (D1) - Local
 # ============================================================================
 
-# Create a new D1 database
-db-create name="event-forms-db":
-    wrangler d1 create {{name}}
+# Run migrations on local database
+db-migrate:
+    wrangler d1 execute event-forms-db --local --file=migrations/001_initial_schema.sql
 
-# Run all migrations on local database
-db-migrate-local:
-    wrangler d1 migrations apply event-forms --local
+# List tables in local database
+db-tables:
+    wrangler d1 execute event-forms-db --local --command "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
 
-# Run all migrations on remote database
-db-migrate-remote:
-    wrangler d1 migrations apply event-forms --remote
+# Query local database
+db-query query:
+    wrangler d1 execute event-forms-db --local --command "{{query}}"
+
+# Reset local database (delete and recreate)
+db-reset:
+    rm -rf .wrangler/state/v3/d1
+    @echo "Local database deleted. Run 'just db-migrate' to recreate."
+
+# ============================================================================
+# Database (D1) - Production
+# ============================================================================
+
+# Create production D1 database (run once)
+db-create-prod:
+    wrangler d1 create event-forms-db
+    @echo "Update wrangler.toml [env.production.d1_databases] database_id with the ID above"
+
+# Run migrations on production database
+db-migrate-prod:
+    wrangler d1 execute event-forms-db --remote --file=migrations/001_initial_schema.sql
+
+# List tables in production database
+db-tables-prod:
+    wrangler d1 execute event-forms-db --remote --command "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+
+# Query production database
+db-query-prod query:
+    wrangler d1 execute event-forms-db --remote --command "{{query}}"
 
 # ============================================================================
 # Deployment
@@ -51,11 +77,7 @@ db-migrate-remote:
 
 # Deploy to Cloudflare Workers (production)
 deploy:
-    wrangler deploy
-
-# Deploy to specific environment
-deploy-env env:
-    wrangler deploy --env {{env}}
+    wrangler deploy --env production
 
 # Show deployment info
 info:
@@ -63,30 +85,26 @@ info:
 
 # Tail production logs
 logs:
-    wrangler tail
-
-# Tail logs for specific environment
-logs-env env:
-    wrangler tail --env {{env}}
+    wrangler tail --env production
 
 # ============================================================================
-# Secrets Management
+# Secrets Management (Production)
 # ============================================================================
 
 # Set admin password secret
 set-admin-password password:
-    echo "{{password}}" | wrangler secret put ADMIN_PASSWORD
+    echo "{{password}}" | wrangler secret put ADMIN_PASSWORD --env production
 
 # Set encryption key secret
 set-encryption-key key:
-    echo "{{key}}" | wrangler secret put ENCRYPTION_KEY
+    echo "{{key}}" | wrangler secret put ENCRYPTION_KEY --env production
 
 # List all secrets
 secrets-list:
-    wrangler secret list
+    wrangler secret list --env production
 
 # ============================================================================
-# Testing & Quality
+# Quality & Utilities
 # ============================================================================
 
 # Run all quality checks
@@ -99,19 +117,14 @@ clean:
     rm -rf build/
     rm -rf .wrangler/
 
-# ============================================================================
-# Utilities
-# ============================================================================
-
 # Generate a random 32-character encryption key
 gen-key:
-    @openssl rand -base64 32 | head -c 32
+    @openssl rand -base64 32 | tr -d '\n' | head -c 32
     @echo ""
 
-# Initialize local development (create DB and run migrations)
-init-local: db-migrate-local
+# Initialize local development (reset DB and run migrations)
+init: db-reset db-migrate
     @echo "Local development environment initialized!"
 
-# Show current wrangler configuration
-config:
-    @cat wrangler.toml
+# Quick start: init and dev
+start: init dev
