@@ -11,10 +11,6 @@ default:
 
 # Start local development server
 dev:
-    wrangler dev
-
-# Start local development with local environment
-dev-local:
     wrangler dev --env local
 
 # Build the project
@@ -43,53 +39,11 @@ db-create name="event-forms-db":
 
 # Run all migrations on local database
 db-migrate-local:
-    @for file in migrations/*.sql; do \
-        echo "Running migration: $file"; \
-        wrangler d1 execute event-forms-db --local --file="$file"; \
-    done
+    wrangler d1 migrations apply event-forms --local
 
 # Run all migrations on remote database
 db-migrate-remote:
-    @for file in migrations/*.sql; do \
-        echo "Running migration: $file"; \
-        wrangler d1 execute event-forms-db --remote --file="$file"; \
-    done
-
-# Run a specific migration locally
-db-migrate-file-local file:
-    wrangler d1 execute event-forms-db --local --file={{file}}
-
-# Run a specific migration remotely
-db-migrate-file-remote file:
-    wrangler d1 execute event-forms-db --remote --file={{file}}
-
-# Open D1 console for local database
-db-console-local:
-    wrangler d1 execute event-forms-db --local --command "SELECT 1"
-
-# List tables in local database
-db-tables-local:
-    wrangler d1 execute event-forms-db --local --command "SELECT name FROM sqlite_master WHERE type='table'"
-
-# List tables in remote database
-db-tables-remote:
-    wrangler d1 execute event-forms-db --remote --command "SELECT name FROM sqlite_master WHERE type='table'"
-
-# Query local database
-db-query-local query:
-    wrangler d1 execute event-forms-db --local --command "{{query}}"
-
-# Query remote database
-db-query-remote query:
-    wrangler d1 execute event-forms-db --remote --command "{{query}}"
-
-# Backup remote database
-db-backup:
-    wrangler d1 backup create event-forms-db
-
-# List database backups
-db-backup-list:
-    wrangler d1 backup list event-forms-db
+    wrangler d1 migrations apply event-forms --remote
 
 # ============================================================================
 # Deployment
