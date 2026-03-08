@@ -1,5 +1,5 @@
 <template>
-  <main class="container">
+  <div style="min-height: 100vh; background: var(--p-surface-50);">
     <slot />
-  </main>
+  </div>
 </template>

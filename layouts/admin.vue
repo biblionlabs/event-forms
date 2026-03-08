@@ -1,19 +1,41 @@
 <template>
-  <div>
-    <nav class="container-fluid" style="background: var(--pico-primary-background); padding: 0.75rem 1.5rem; margin-bottom: 1.5rem;">
-      <ul>
-        <li><strong style="color: white;">Event Forms Admin</strong></li>
-      </ul>
-      <ul>
-        <li><NuxtLink to="/admin" style="color: white;">Dashboard</NuxtLink></li>
-        <li><NuxtLink to="/admin/forms" style="color: white;">Formularios</NuxtLink></li>
-        <li><NuxtLink to="/admin/stats" style="color: white;">Estadísticas</NuxtLink></li>
-        <li><a href="#" @click.prevent="logout" style="color: white;">Salir</a></li>
-      </ul>
-    </nav>
-    <main class="container">
-      <slot />
-    </main>
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="brand">
+        <i class="pi pi-bolt" />
+        Event Forms
+      </div>
+      <nav>
+        <NuxtLink to="/admin">
+          <i class="pi pi-home" />
+          Dashboard
+        </NuxtLink>
+        <NuxtLink to="/admin/forms">
+          <i class="pi pi-file-edit" />
+          Formularios
+        </NuxtLink>
+        <NuxtLink to="/admin/stats">
+          <i class="pi pi-chart-bar" />
+          Estadísticas
+        </NuxtLink>
+      </nav>
+      <div class="sidebar-footer">
+        <Button
+          label="Cerrar sesión"
+          icon="pi pi-sign-out"
+          severity="secondary"
+          text
+          size="small"
+          @click="logout"
+          style="color: var(--p-surface-400); width: 100%; justify-content: flex-start;"
+        />
+      </div>
+    </aside>
+    <div class="admin-main">
+      <div class="admin-content">
+        <slot />
+      </div>
+    </div>
   </div>
 </template>
 

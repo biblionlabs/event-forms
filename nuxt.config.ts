@@ -1,6 +1,22 @@
+import Aura from '@primevue/themes/aura'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
   devtools: { enabled: false },
+
+  modules: ['@primevue/nuxt-module'],
+
+  primevue: {
+    options: {
+      theme: {
+        preset: Aura,
+        options: {
+          darkModeSelector: '.dark-mode'
+        }
+      },
+      ripple: true
+    }
+  },
 
   nitro: {
     preset: 'cloudflare-pages',
@@ -19,12 +35,11 @@ export default defineNuxtConfig({
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' }
-      ],
-      link: [
-        { rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css' }
       ]
     }
   },
+
+  css: ['~/assets/css/global.css'],
 
   routeRules: {
     '/admin/**': { ssr: false },

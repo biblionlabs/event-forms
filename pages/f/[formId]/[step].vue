@@ -1,72 +1,79 @@
 <template>
   <div>
-    <div v-if="pending" aria-busy="true" style="text-align: center; padding: 3rem;">
-      Cargando formulario...
-    </div>
+    <ProgressSpinner v-if="pending" style="display: block; margin: 3rem auto;" />
 
     <template v-else-if="formError">
-      <article style="text-align: center;">
-        <h2>Formulario no disponible</h2>
-        <p>{{ formError.statusMessage || 'Este formulario no existe o no está activo.' }}</p>
-      </article>
+      <Card style="text-align: center;">
+        <template #title>Formulario no disponible</template>
+        <template #content>
+          <p style="color: var(--p-text-muted-color);">{{ formError.statusMessage || 'Este formulario no existe o no está activo.' }}</p>
+        </template>
+      </Card>
     </template>
 
+    <!-- Thank You Screen -->
     <template v-else-if="submitted && thankYouData">
-      <article style="text-align: center; padding: 2rem;">
-        <img
-          v-if="thankYouData.image_url"
-          :src="thankYouData.image_url"
-          :alt="thankYouData.title"
-          style="max-width: 300px; margin: 0 auto 1.5rem; display: block; border-radius: var(--pico-border-radius);"
-        />
-        <h2>{{ thankYouData.title }}</h2>
-        <p>{{ thankYouData.message }}</p>
-        <NuxtLink
-          v-if="nextStep"
-          :to="`/f/${formId}/${nextStep}`"
-          role="button"
-          style="margin-top: 1rem;"
-        >
-          Continuar al siguiente paso
-        </NuxtLink>
-      </article>
+      <Card style="text-align: center; padding: 1.5rem;">
+        <template #content>
+          <img
+            v-if="thankYouData.image_url"
+            :src="thankYouData.image_url"
+            :alt="thankYouData.title"
+            style="max-width: 280px; margin: 0 auto 1.5rem; display: block; border-radius: var(--p-border-radius);"
+          />
+          <i v-else class="pi pi-check-circle" style="font-size: 3rem; color: var(--p-green-500); display: block; margin-bottom: 1rem;" />
+          <h2>{{ thankYouData.title }}</h2>
+          <p style="color: var(--p-text-muted-color);">{{ thankYouData.message }}</p>
+          <Button
+            v-if="nextStep"
+            label="Continuar al siguiente paso"
+            icon="pi pi-arrow-right"
+            @click="navigateTo(`/f/${formId}/${nextStep}`)"
+            style="margin-top: 1rem;"
+          />
+        </template>
+      </Card>
     </template>
 
+    <!-- Form Step -->
     <template v-else-if="data">
-      <article>
-        <header>
-          <h2>{{ data.form.name }}</h2>
-          <p v-if="data.form.description">{{ data.form.description }}</p>
-        </header>
+      <Card>
+        <template #title>{{ data.form.name }}</template>
+        <template #subtitle>{{ data.form.description }}</template>
+        <template #content>
+          <FormStepProgress
+            :current-step="data.step.step_number"
+            :total-steps="data.totalSteps"
+          />
 
-        <FormStepProgress
-          :current-step="data.step.step_number"
-          :total-steps="data.totalSteps"
-        />
+          <h3 style="margin-bottom: 0.25rem;">{{ data.step.title }}</h3>
+          <p v-if="data.step.description" style="color: var(--p-text-muted-color); margin-bottom: 1.5rem;">{{ data.step.description }}</p>
 
-        <h3>{{ data.step.title }}</h3>
-        <p v-if="data.step.description">{{ data.step.description }}</p>
+          <Message v-if="data.isReturningUser && Object.keys(data.prefillData).length > 0" severity="info" :closable="false" style="margin-bottom: 1.5rem;">
+            Hemos encontrado tus datos anteriores. Los campos ya conocidos están pre-llenados.
+          </Message>
 
-        <div v-if="data.isReturningUser && Object.keys(data.prefillData).length > 0" style="background: var(--pico-card-background-color); padding: 1rem; border-radius: var(--pico-border-radius); margin-bottom: 1rem; border-left: 3px solid var(--pico-primary);">
-          <small>Hemos encontrado tus datos anteriores. Los campos ya conocidos están pre-llenados.</small>
-        </div>
+          <form @submit.prevent="submitStep">
+            <template v-for="field in visibleFields" :key="field.field_key">
+              <FormDynamicField
+                :field="field"
+                v-model="formData[field.field_key]"
+                :error="errors[field.field_key]"
+              />
+            </template>
 
-        <form @submit.prevent="submitStep">
-          <template v-for="field in visibleFields" :key="field.field_key">
-            <FormDynamicField
-              :field="field"
-              v-model="formData[field.field_key]"
-              :error="errors[field.field_key]"
+            <Message v-if="submitError" severity="error" :closable="false" style="margin-bottom: 1rem;">{{ submitError }}</Message>
+
+            <Button
+              type="submit"
+              :label="data.step.is_final ? 'Enviar' : 'Siguiente'"
+              :icon="data.step.is_final ? 'pi pi-check' : 'pi pi-arrow-right'"
+              :loading="submitting"
+              style="width: 100%; margin-top: 0.5rem;"
             />
-          </template>
-
-          <p v-if="submitError" style="color: var(--pico-del-color);">{{ submitError }}</p>
-
-          <button type="submit" :disabled="submitting" :aria-busy="submitting">
-            {{ data.step.is_final ? 'Enviar' : 'Siguiente' }}
-          </button>
-        </form>
-      </article>
+          </form>
+        </template>
+      </Card>
     </template>
   </div>
 </template>
@@ -118,7 +125,7 @@ function validate(): boolean {
     if (value && field.validations?.pattern) {
       const re = new RegExp(field.validations.pattern)
       if (!re.test(value)) {
-        errors[field.field_key] = `Formato inválido`
+        errors[field.field_key] = 'Formato inválido'
         valid = false
       }
     }

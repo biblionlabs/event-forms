@@ -1,24 +1,42 @@
 <template>
-  <div style="max-width: 400px; margin: 4rem auto;">
-    <article>
-      <header>
-        <h2>Iniciar Sesión</h2>
-      </header>
-      <form @submit.prevent="handleLogin">
-        <label>
-          Usuario
-          <input v-model="username" type="text" required autocomplete="username" />
-        </label>
-        <label>
-          Contraseña
-          <input v-model="password" type="password" required autocomplete="current-password" />
-        </label>
-        <p v-if="error" style="color: var(--pico-del-color);">{{ error }}</p>
-        <button type="submit" :disabled="loading" :aria-busy="loading">
-          Entrar
-        </button>
-      </form>
-    </article>
+  <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--p-surface-50);">
+    <Card style="width: 380px;">
+      <template #title>
+        <div style="text-align: center;">
+          <i class="pi pi-bolt" style="font-size: 2rem; color: var(--p-primary-color); display: block; margin-bottom: 0.5rem;" />
+          Iniciar Sesión
+        </div>
+      </template>
+      <template #content>
+        <form @submit.prevent="handleLogin">
+          <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <div>
+              <label for="username" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem;">Usuario</label>
+              <InputText
+                id="username"
+                v-model="username"
+                placeholder="admin"
+                autocomplete="username"
+                style="width: 100%;"
+              />
+            </div>
+            <div>
+              <label for="password" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem;">Contraseña</label>
+              <Password
+                id="password"
+                v-model="password"
+                :feedback="false"
+                toggle-mask
+                input-style="width: 100%"
+                style="width: 100%;"
+              />
+            </div>
+            <Message v-if="error" severity="error" :closable="false">{{ error }}</Message>
+            <Button type="submit" label="Entrar" icon="pi pi-sign-in" :loading="loading" style="width: 100%;" />
+          </div>
+        </form>
+      </template>
+    </Card>
   </div>
 </template>
 

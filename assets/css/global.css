@@ -1,0 +1,138 @@
+/* Global styles for Event Forms */
+:root {
+  --ef-sidebar-width: 260px;
+}
+
+body {
+  margin: 0;
+  font-family: var(--p-font-family);
+}
+
+/* Admin layout */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  width: var(--ef-sidebar-width);
+  background: var(--p-surface-900);
+  color: var(--p-surface-0);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 100;
+}
+
+.admin-sidebar .brand {
+  padding: 1.25rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--p-surface-700);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-sidebar nav {
+  flex: 1;
+  padding: 0.75rem 0;
+}
+
+.admin-sidebar nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  color: var(--p-surface-300);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+  font-size: 0.9rem;
+}
+
+.admin-sidebar nav a:hover,
+.admin-sidebar nav a.router-link-active {
+  background: var(--p-surface-800);
+  color: var(--p-surface-0);
+}
+
+.admin-sidebar .sidebar-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--p-surface-700);
+}
+
+.admin-main {
+  margin-left: var(--ef-sidebar-width);
+  flex: 1;
+  background: var(--p-surface-50);
+  min-height: 100vh;
+}
+
+.admin-topbar {
+  background: var(--p-surface-0);
+  border-bottom: 1px solid var(--p-surface-200);
+  padding: 0.75rem 2rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.admin-content {
+  padding: 2rem;
+}
+
+/* Form layout */
+.form-layout {
+  min-height: 100vh;
+  background: var(--p-surface-50);
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.form-container {
+  width: 100%;
+  max-width: 640px;
+}
+
+/* Stats cards */
+.stat-card {
+  text-align: center;
+}
+
+.stat-card .stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--p-primary-color);
+}
+
+.stat-card .stat-label {
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color);
+  margin-top: 0.25rem;
+}
+
+/* Field builder */
+.field-card {
+  border: 1px solid var(--p-surface-200);
+  border-radius: var(--p-border-radius);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  background: var(--p-surface-0);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    display: none;
+  }
+  .admin-main {
+    margin-left: 0;
+  }
+  .admin-content {
+    padding: 1rem;
+  }
+}

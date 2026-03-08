@@ -1,91 +1,109 @@
 <template>
   <div>
-    <NuxtLink to="/admin/stats" style="margin-bottom: 1rem; display: inline-block;">&larr; Volver a estadísticas</NuxtLink>
-    <h1>Perfil de Usuario</h1>
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+      <Button icon="pi pi-arrow-left" severity="secondary" text @click="navigateTo('/admin/stats')" />
+      <h2 style="margin: 0;">Perfil de Usuario</h2>
+    </div>
 
-    <div v-if="pending" aria-busy="true">Cargando...</div>
+    <ProgressSpinner v-if="pending" style="display: block; margin: 3rem auto;" />
     <template v-else-if="data">
-      <article>
-        <header><h3>Datos del Perfil</h3></header>
-        <dl>
-          <template v-for="(value, key) in data.user.data" :key="key">
-            <dt>{{ key }}</dt>
-            <dd>{{ value }}</dd>
-          </template>
-        </dl>
-        <p><small>Fingerprint: <code>{{ data.user.fingerprint?.slice(0, 16) }}...</code></small></p>
-        <p><small>Creado: {{ new Date(data.user.created_at).toLocaleString() }}</small></p>
-      </article>
+      <!-- Profile -->
+      <Card style="margin-bottom: 1.5rem;">
+        <template #title>Datos del Perfil</template>
+        <template #content>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem;">
+            <div v-for="(value, key) in data.user.data" :key="key" style="background: var(--p-surface-50); padding: 0.75rem; border-radius: var(--p-border-radius);">
+              <div style="font-size: 0.75rem; color: var(--p-text-muted-color); text-transform: uppercase; margin-bottom: 0.25rem;">{{ key }}</div>
+              <div style="font-weight: 500;">{{ value }}</div>
+            </div>
+          </div>
+          <div style="margin-top: 1rem; display: flex; gap: 2rem; font-size: 0.85rem; color: var(--p-text-muted-color);">
+            <span>Fingerprint: <code>{{ data.user.fingerprint?.slice(0, 16) }}...</code></span>
+            <span>Creado: {{ new Date(data.user.created_at).toLocaleString() }}</span>
+          </div>
+        </template>
+      </Card>
 
-      <h3>Respuestas ({{ data.responses.length }})</h3>
-      <div class="overflow-auto">
-        <table>
-          <thead>
-            <tr>
-              <th>Formulario</th>
-              <th>Estado</th>
-              <th>Paso</th>
-              <th>Inicio</th>
-              <th>Datos</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="r in data.responses" :key="r.id">
-              <td>{{ r.form_name }}</td>
-              <td>
-                <span :style="{ color: r.status === 'completed' ? 'green' : 'orange' }">
-                  {{ r.status === 'completed' ? 'Completado' : 'En progreso' }}
-                </span>
-              </td>
-              <td>{{ r.current_step }}</td>
-              <td>{{ new Date(r.started_at).toLocaleString() }}</td>
-              <td>
-                <details v-if="r.step_data?.length">
-                  <summary>Ver datos</summary>
-                  <pre>{{ JSON.stringify(r.step_data, null, 2) }}</pre>
-                </details>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- Responses -->
+      <Card style="margin-bottom: 1.5rem;">
+        <template #title>Respuestas ({{ data.responses.length }})</template>
+        <template #content>
+          <DataTable :value="data.responses" :rows="10" paginator striped-rows>
+            <Column field="form_name" header="Formulario" />
+            <Column header="Estado">
+              <template #body="slotProps">
+                <Tag
+                  :value="slotProps.data.status === 'completed' ? 'Completado' : 'En progreso'"
+                  :severity="slotProps.data.status === 'completed' ? 'success' : 'warn'"
+                />
+              </template>
+            </Column>
+            <Column field="current_step" header="Paso" />
+            <Column header="Inicio">
+              <template #body="slotProps">
+                {{ new Date(slotProps.data.started_at).toLocaleString() }}
+              </template>
+            </Column>
+            <Column header="Datos">
+              <template #body="slotProps">
+                <Button
+                  v-if="slotProps.data.step_data?.length"
+                  label="Ver datos"
+                  size="small"
+                  text
+                  @click="toggleStepData(slotProps.data.id)"
+                />
+                <pre v-if="expandedRows[slotProps.data.id]" style="font-size: 0.75rem; background: var(--p-surface-50); padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem; white-space: pre-wrap;">{{ JSON.stringify(slotProps.data.step_data, null, 2) }}</pre>
+              </template>
+            </Column>
+          </DataTable>
+        </template>
+      </Card>
 
-      <h3>Sesiones ({{ data.sessions.length }})</h3>
-      <div class="overflow-auto">
-        <table>
-          <thead>
-            <tr><th>ID</th><th>IP</th><th>País</th><th>Dispositivo</th><th>Último Acceso</th></tr>
-          </thead>
-          <tbody>
-            <tr v-for="s in data.sessions" :key="s.id">
-              <td><code>{{ s.id.slice(0, 8) }}</code></td>
-              <td>{{ s.ip_address }}</td>
-              <td>{{ s.country }}</td>
-              <td>{{ s.device_type }}</td>
-              <td>{{ new Date(s.last_active_at).toLocaleString() }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- Sessions -->
+      <Card style="margin-bottom: 1.5rem;">
+        <template #title>Sesiones ({{ data.sessions.length }})</template>
+        <template #content>
+          <DataTable :value="data.sessions" :rows="10" paginator striped-rows>
+            <Column header="ID" style="width: 100px;">
+              <template #body="slotProps">
+                <code style="font-size: 0.8rem;">{{ slotProps.data.id.slice(0, 8) }}</code>
+              </template>
+            </Column>
+            <Column field="ip_address" header="IP" />
+            <Column field="country" header="País" />
+            <Column field="device_type" header="Dispositivo" />
+            <Column header="Último Acceso">
+              <template #body="slotProps">
+                {{ new Date(slotProps.data.last_active_at).toLocaleString() }}
+              </template>
+            </Column>
+          </DataTable>
+        </template>
+      </Card>
 
-      <h3>Historial de Escaneos ({{ data.scans.length }})</h3>
-      <div class="overflow-auto">
-        <table>
-          <thead>
-            <tr><th>Formulario</th><th>Paso</th><th>Nuevo</th><th>País</th><th>Dispositivo</th><th>Fecha</th></tr>
-          </thead>
-          <tbody>
-            <tr v-for="scan in data.scans" :key="scan.id">
-              <td>{{ scan.form_name }}</td>
-              <td>{{ scan.step_number }}</td>
-              <td>{{ scan.is_new_user ? 'Sí' : 'No' }}</td>
-              <td>{{ scan.country }}</td>
-              <td>{{ scan.device_type }}</td>
-              <td>{{ new Date(scan.scanned_at).toLocaleString() }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- Scan History -->
+      <Card>
+        <template #title>Historial de Escaneos ({{ data.scans.length }})</template>
+        <template #content>
+          <DataTable :value="data.scans" :rows="15" paginator striped-rows>
+            <Column field="form_name" header="Formulario" />
+            <Column field="step_number" header="Paso" />
+            <Column header="Nuevo">
+              <template #body="slotProps">
+                <Tag :value="slotProps.data.is_new_user ? 'Sí' : 'No'" :severity="slotProps.data.is_new_user ? 'success' : 'secondary'" />
+              </template>
+            </Column>
+            <Column field="country" header="País" />
+            <Column field="device_type" header="Dispositivo" />
+            <Column header="Fecha">
+              <template #body="slotProps">
+                {{ new Date(slotProps.data.scanned_at).toLocaleString() }}
+              </template>
+            </Column>
+          </DataTable>
+        </template>
+      </Card>
     </template>
   </div>
 </template>
@@ -95,8 +113,10 @@ definePageMeta({ layout: 'admin' })
 
 const route = useRoute()
 const { data, pending } = await useFetch(`/api/admin/stats/users/${route.params.id}`)
-</script>
 
-<style scoped>
-.overflow-auto { overflow-x: auto; }
-</style>
+const expandedRows = reactive<Record<string, boolean>>({})
+
+function toggleStepData(id: string) {
+  expandedRows[id] = !expandedRows[id]
+}
+</script>

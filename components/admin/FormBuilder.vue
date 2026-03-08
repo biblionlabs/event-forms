@@ -1,178 +1,209 @@
 <template>
   <form @submit.prevent="save">
-    <article>
-      <header><h3>Información General</h3></header>
-      <label>
-        Nombre del formulario *
-        <input v-model="form.name" type="text" required />
-      </label>
-      <label>
-        Descripción
-        <textarea v-model="form.description" rows="2"></textarea>
-      </label>
-      <div class="grid">
-        <label>
-          Título de agradecimiento final
-          <input v-model="form.thank_you_title" type="text" />
-        </label>
-        <label>
-          URL de imagen de agradecimiento
-          <input v-model="form.thank_you_image_url" type="url" placeholder="https://..." />
-        </label>
-      </div>
-      <label>
-        Mensaje de agradecimiento final
-        <textarea v-model="form.thank_you_message" rows="2"></textarea>
-      </label>
-    </article>
-
-    <article>
-      <header><h3>Configuración de Sesión e Identificación</h3></header>
-      <p><small>Define qué campos se usan para identificar usuarios entre formularios.</small></p>
-      <label>
-        Campos identificadores (fingerprint)
-        <input v-model="identifierFieldsStr" type="text" placeholder="email,phone (separados por coma)" />
-      </label>
-      <p><small>Combinación de campos que generan un hash único para identificar al usuario.</small></p>
-      <label>
-        Campos a guardar en cookies
-        <input v-model="cookieFieldsStr" type="text" placeholder="email,name (separados por coma)" />
-      </label>
-      <p><small>Campos que se almacenan en cookies para pre-llenar en futuras visitas.</small></p>
-      <label>
-        Campos requeridos para sesión completa
-        <input v-model="sessionRequiredStr" type="text" placeholder="email (separados por coma)" />
-      </label>
-      <p><small>Campos que deben estar completos para considerar la sesión válida.</small></p>
-    </article>
-
-    <h3>Pasos del Formulario</h3>
-    <div v-for="(step, si) in form.steps" :key="si">
-      <article>
-        <header>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h4>Paso {{ si + 1 }}</h4>
+    <!-- General Info -->
+    <Card style="margin-bottom: 1.5rem;">
+      <template #title>Información General</template>
+      <template #content>
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem;">Nombre del formulario *</label>
+            <InputText v-model="form.name" required style="width: 100%;" />
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem;">Descripción</label>
+            <Textarea v-model="form.description" rows="2" style="width: 100%;" />
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div>
-              <button type="button" class="outline" @click="moveStep(si, -1)" :disabled="si === 0">&#9650;</button>
-              <button type="button" class="outline" @click="moveStep(si, 1)" :disabled="si === form.steps.length - 1">&#9660;</button>
-              <button type="button" class="outline secondary" @click="removeStep(si)">Eliminar</button>
+              <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem;">Título de agradecimiento final</label>
+              <InputText v-model="form.thank_you_title" style="width: 100%;" />
+            </div>
+            <div>
+              <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem;">URL de imagen de agradecimiento</label>
+              <InputText v-model="form.thank_you_image_url" placeholder="https://..." style="width: 100%;" />
             </div>
           </div>
-        </header>
-        <div class="grid">
-          <label>
-            Título del paso *
-            <input v-model="step.title" type="text" required />
-          </label>
-          <label>
-            Descripción
-            <input v-model="step.description" type="text" />
-          </label>
-        </div>
-        <details>
-          <summary>Mensaje al completar este paso</summary>
-          <div class="grid">
-            <label>
-              Título
-              <input v-model="step.thank_you_title" type="text" />
-            </label>
-            <label>
-              URL de imagen
-              <input v-model="step.thank_you_image_url" type="url" placeholder="https://..." />
-            </label>
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem;">Mensaje de agradecimiento final</label>
+            <Textarea v-model="form.thank_you_message" rows="2" style="width: 100%;" />
           </div>
-          <label>
-            Mensaje
-            <textarea v-model="step.thank_you_message" rows="2"></textarea>
-          </label>
-        </details>
-        <label>
-          <input type="checkbox" v-model="step.is_final" />
-          Es paso final (completa el formulario)
-        </label>
+        </div>
+      </template>
+    </Card>
 
-        <h5>Campos</h5>
-        <div v-for="(field, fi) in step.fields" :key="fi" style="border: 1px solid var(--pico-muted-border-color); padding: 1rem; margin-bottom: 0.5rem; border-radius: var(--pico-border-radius);">
-          <div class="grid">
-            <label>
-              Clave *
-              <input v-model="field.field_key" type="text" required placeholder="email, nombre, etc." />
-            </label>
-            <label>
-              Etiqueta *
-              <input v-model="field.label" type="text" required placeholder="Tu correo electrónico" />
-            </label>
-            <label>
-              Tipo
-              <select v-model="field.field_type">
-                <option value="text">Texto</option>
-                <option value="email">Email</option>
-                <option value="phone">Teléfono</option>
-                <option value="number">Número</option>
-                <option value="textarea">Área de texto</option>
-                <option value="select">Selección</option>
-                <option value="radio">Radio</option>
-                <option value="checkbox">Checkbox</option>
-                <option value="date">Fecha</option>
-                <option value="url">URL</option>
-              </select>
-            </label>
+    <!-- Session & Identification Config -->
+    <Card style="margin-bottom: 1.5rem;">
+      <template #title>Configuración de Sesión e Identificación</template>
+      <template #subtitle>Define qué campos se usan para identificar usuarios entre formularios.</template>
+      <template #content>
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem;">Campos identificadores (fingerprint)</label>
+            <Chips v-model="identifierChips" separator="," placeholder="email, phone..." style="width: 100%;" />
+            <small style="color: var(--p-text-muted-color);">Combinación de campos que generan un hash único para identificar al usuario.</small>
           </div>
-          <div class="grid">
-            <label>
-              Placeholder
-              <input v-model="field.placeholder" type="text" />
-            </label>
-            <label v-if="['select', 'radio', 'checkbox'].includes(field.field_type)">
-              Opciones (una por línea)
-              <textarea v-model="field._optionsStr" rows="3" @input="parseOptions(field)"></textarea>
-            </label>
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem;">Campos a guardar en cookies</label>
+            <Chips v-model="cookieChips" separator="," placeholder="email, name..." style="width: 100%;" />
+            <small style="color: var(--p-text-muted-color);">Campos que se almacenan en cookies para pre-llenar en futuras visitas.</small>
           </div>
-          <details>
-            <summary>Validaciones</summary>
-            <div class="grid">
-              <label>
-                Patrón (regex)
-                <input v-model="field._validations.pattern" type="text" />
-              </label>
-              <label>
-                Mín. caracteres
-                <input v-model.number="field._validations.minLength" type="number" />
-              </label>
-              <label>
-                Máx. caracteres
-                <input v-model.number="field._validations.maxLength" type="number" />
-              </label>
-            </div>
-          </details>
-          <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
-            <label style="margin: 0;">
-              <input type="checkbox" v-model="field.is_required" /> Requerido
-            </label>
-            <label style="margin: 0;">
-              <input type="checkbox" v-model="field.is_identifier" /> Identificador
-            </label>
-            <label style="margin: 0;">
-              <input type="checkbox" v-model="field.is_cookie" /> Guardar en cookie
-            </label>
-            <button type="button" class="outline secondary" style="margin-left: auto;" @click="removeField(si, fi)">
-              Quitar campo
-            </button>
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem;">Campos requeridos para sesión completa</label>
+            <Chips v-model="sessionRequiredChips" separator="," placeholder="email..." style="width: 100%;" />
+            <small style="color: var(--p-text-muted-color);">Campos que deben estar completos para considerar la sesión válida.</small>
           </div>
         </div>
-        <button type="button" class="outline" @click="addField(si)">+ Agregar Campo</button>
-      </article>
+      </template>
+    </Card>
+
+    <!-- Steps -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="margin: 0;">Pasos del Formulario</h3>
+      <Button type="button" label="Agregar Paso" icon="pi pi-plus" severity="secondary" @click="addStep" />
     </div>
 
-    <button type="button" class="secondary" @click="addStep">+ Agregar Paso</button>
-    <hr />
-    <button type="submit">Guardar Formulario</button>
+    <Card v-for="(step, si) in form.steps" :key="si" style="margin-bottom: 1rem;">
+      <template #title>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span>Paso {{ si + 1 }}</span>
+          <div style="display: flex; gap: 0.5rem;">
+            <Button type="button" icon="pi pi-arrow-up" size="small" severity="secondary" text :disabled="si === 0" @click="moveStep(si, -1)" />
+            <Button type="button" icon="pi pi-arrow-down" size="small" severity="secondary" text :disabled="si === form.steps.length - 1" @click="moveStep(si, 1)" />
+            <Button type="button" icon="pi pi-trash" size="small" severity="danger" text @click="removeStep(si)" :disabled="form.steps.length <= 1" />
+          </div>
+        </div>
+      </template>
+      <template #content>
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+              <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem;">Título del paso *</label>
+              <InputText v-model="step.title" required style="width: 100%;" />
+            </div>
+            <div>
+              <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem;">Descripción</label>
+              <InputText v-model="step.description" style="width: 100%;" />
+            </div>
+          </div>
+
+          <!-- Step thank you (collapsible) -->
+          <Panel header="Mensaje al completar este paso" toggleable collapsed>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem;">Título</label>
+                <InputText v-model="step.thank_you_title" style="width: 100%;" />
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem;">URL de imagen</label>
+                <InputText v-model="step.thank_you_image_url" placeholder="https://..." style="width: 100%;" />
+              </div>
+            </div>
+            <div style="margin-top: 0.75rem;">
+              <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem;">Mensaje</label>
+              <Textarea v-model="step.thank_you_message" rows="2" style="width: 100%;" />
+            </div>
+          </Panel>
+
+          <div>
+            <Checkbox v-model="step.is_final" :binary="true" input-id="final" />
+            <label for="final" style="margin-left: 0.5rem; font-size: 0.875rem;">Es paso final (completa el formulario)</label>
+          </div>
+
+          <!-- Fields -->
+          <Divider />
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h4 style="margin: 0;">Campos</h4>
+            <Button type="button" label="Agregar Campo" icon="pi pi-plus" size="small" severity="secondary" outlined @click="addField(si)" />
+          </div>
+
+          <div v-for="(field, fi) in step.fields" :key="fi" class="field-card">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
+              <div>
+                <label style="display: block; margin-bottom: 0.25rem; font-size: 0.8rem; color: var(--p-text-muted-color);">Clave *</label>
+                <InputText v-model="field.field_key" required placeholder="email, nombre..." size="small" style="width: 100%;" />
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 0.25rem; font-size: 0.8rem; color: var(--p-text-muted-color);">Etiqueta *</label>
+                <InputText v-model="field.label" required placeholder="Tu correo" size="small" style="width: 100%;" />
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 0.25rem; font-size: 0.8rem; color: var(--p-text-muted-color);">Tipo</label>
+                <Select v-model="field.field_type" :options="fieldTypes" option-label="label" option-value="value" size="small" style="width: 100%;" />
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.75rem;">
+              <div>
+                <label style="display: block; margin-bottom: 0.25rem; font-size: 0.8rem; color: var(--p-text-muted-color);">Placeholder</label>
+                <InputText v-model="field.placeholder" size="small" style="width: 100%;" />
+              </div>
+              <div v-if="['select', 'radio', 'checkbox'].includes(field.field_type)">
+                <label style="display: block; margin-bottom: 0.25rem; font-size: 0.8rem; color: var(--p-text-muted-color);">Opciones (una por línea)</label>
+                <Textarea v-model="field._optionsStr" rows="3" style="width: 100%;" @input="parseOptions(field)" />
+              </div>
+            </div>
+
+            <!-- Validations (collapsible) -->
+            <Panel header="Validaciones" toggleable collapsed style="margin-top: 0.75rem;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
+                <div>
+                  <label style="display: block; margin-bottom: 0.25rem; font-size: 0.8rem; color: var(--p-text-muted-color);">Patrón (regex)</label>
+                  <InputText v-model="field._validations.pattern" size="small" style="width: 100%;" />
+                </div>
+                <div>
+                  <label style="display: block; margin-bottom: 0.25rem; font-size: 0.8rem; color: var(--p-text-muted-color);">Mín. caracteres</label>
+                  <InputNumber v-model="field._validations.minLength" size="small" style="width: 100%;" />
+                </div>
+                <div>
+                  <label style="display: block; margin-bottom: 0.25rem; font-size: 0.8rem; color: var(--p-text-muted-color);">Máx. caracteres</label>
+                  <InputNumber v-model="field._validations.maxLength" size="small" style="width: 100%;" />
+                </div>
+              </div>
+            </Panel>
+
+            <!-- Field flags & delete -->
+            <div style="display: flex; gap: 1.5rem; align-items: center; margin-top: 0.75rem; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <Checkbox v-model="field.is_required" :binary="true" :input-id="`req-${si}-${fi}`" />
+                <label :for="`req-${si}-${fi}`" style="font-size: 0.85rem;">Requerido</label>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <Checkbox v-model="field.is_identifier" :binary="true" :input-id="`id-${si}-${fi}`" />
+                <label :for="`id-${si}-${fi}`" style="font-size: 0.85rem;">Identificador</label>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <Checkbox v-model="field.is_cookie" :binary="true" :input-id="`ck-${si}-${fi}`" />
+                <label :for="`ck-${si}-${fi}`" style="font-size: 0.85rem;">Cookie</label>
+              </div>
+              <Button type="button" icon="pi pi-times" size="small" severity="danger" text style="margin-left: auto;" @click="removeField(si, fi)" />
+            </div>
+          </div>
+        </div>
+      </template>
+    </Card>
+
+    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+      <Button type="submit" label="Guardar Formulario" icon="pi pi-check" />
+    </div>
   </form>
 </template>
 
 <script setup lang="ts">
 const props = defineProps<{ initialData?: any }>()
 const emit = defineEmits<{ save: [data: any] }>()
+
+const fieldTypes = [
+  { label: 'Texto', value: 'text' },
+  { label: 'Email', value: 'email' },
+  { label: 'Teléfono', value: 'phone' },
+  { label: 'Número', value: 'number' },
+  { label: 'Área de texto', value: 'textarea' },
+  { label: 'Selección', value: 'select' },
+  { label: 'Radio', value: 'radio' },
+  { label: 'Checkbox', value: 'checkbox' },
+  { label: 'Fecha', value: 'date' },
+  { label: 'URL', value: 'url' }
+]
 
 interface FieldData {
   id?: string
@@ -243,9 +274,9 @@ const form = reactive({
   steps: [createStep(1)] as StepData[]
 })
 
-const identifierFieldsStr = ref('')
-const cookieFieldsStr = ref('')
-const sessionRequiredStr = ref('')
+const identifierChips = ref<string[]>([])
+const cookieChips = ref<string[]>([])
+const sessionRequiredChips = ref<string[]>([])
 
 if (props.initialData) {
   Object.assign(form, {
@@ -265,9 +296,9 @@ if (props.initialData) {
       })) || [createField()]
     })) || [createStep(1)]
   })
-  identifierFieldsStr.value = (props.initialData.identifier_fields || []).join(', ')
-  cookieFieldsStr.value = (props.initialData.cookie_fields || []).join(', ')
-  sessionRequiredStr.value = (props.initialData.session_required_fields || []).join(', ')
+  identifierChips.value = props.initialData.identifier_fields || []
+  cookieChips.value = props.initialData.cookie_fields || []
+  sessionRequiredChips.value = props.initialData.session_required_fields || []
 }
 
 function parseOptions(field: FieldData) {
@@ -302,13 +333,11 @@ function removeField(stepIndex: number, fieldIndex: number) {
 }
 
 function save() {
-  const parseList = (s: string) => s.split(',').map(v => v.trim()).filter(Boolean)
-
   const data = {
     ...toRaw(form),
-    identifier_fields: parseList(identifierFieldsStr.value),
-    cookie_fields: parseList(cookieFieldsStr.value),
-    session_required_fields: parseList(sessionRequiredStr.value),
+    identifier_fields: identifierChips.value,
+    cookie_fields: cookieChips.value,
+    session_required_fields: sessionRequiredChips.value,
     steps: form.steps.map((step, si) => ({
       ...toRaw(step),
       step_number: si + 1,

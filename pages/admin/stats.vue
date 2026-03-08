@@ -1,168 +1,178 @@
 <template>
   <div>
-    <h1>Estadísticas</h1>
+    <h2 style="margin-bottom: 1.5rem;">Estadísticas</h2>
 
-    <div v-if="selectedFormId">
-      <button class="outline" @click="selectedFormId = ''">Ver Todas</button>
-      <div v-if="formStatsPending" aria-busy="true">Cargando...</div>
+    <!-- Form Detail View -->
+    <template v-if="selectedFormId">
+      <Button label="Ver Todas" icon="pi pi-arrow-left" severity="secondary" text @click="selectedFormId = ''" style="margin-bottom: 1rem;" />
+
+      <ProgressSpinner v-if="formStatsPending" style="display: block; margin: 3rem auto;" />
       <template v-else-if="formStatsData">
-        <h2>{{ formStatsData.form.name }}</h2>
+        <h3>{{ formStatsData.form.name }}</h3>
 
-        <h3>Embudo de Conversión</h3>
-        <div class="overflow-auto">
-          <table>
-            <thead>
-              <tr>
-                <th>Paso</th>
-                <th>Título</th>
-                <th>Escaneos</th>
-                <th>Visitantes Únicos</th>
-                <th>Nuevos</th>
-                <th>Completados</th>
-                <th>Tasa</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="step in formStatsData.funnel" :key="step.step_number">
-                <td>{{ step.step_number }}</td>
-                <td>{{ step.title }}</td>
-                <td>{{ step.scans }}</td>
-                <td>{{ step.unique_visitors }}</td>
-                <td>{{ step.new_users }}</td>
-                <td>{{ step.completions }}</td>
-                <td>
-                  {{ step.unique_visitors > 0 ? Math.round((step.completions / step.unique_visitors) * 100) : 0 }}%
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <!-- Funnel -->
+        <Card style="margin-bottom: 1.5rem;">
+          <template #title>Embudo de Conversión</template>
+          <template #content>
+            <DataTable :value="formStatsData.funnel" striped-rows>
+              <Column field="step_number" header="Paso" style="width: 60px;" />
+              <Column field="title" header="Título" />
+              <Column field="scans" header="Escaneos" sortable />
+              <Column field="unique_visitors" header="Visitantes Únicos" sortable />
+              <Column field="new_users" header="Nuevos" sortable />
+              <Column field="completions" header="Completados" sortable />
+              <Column header="Tasa">
+                <template #body="slotProps">
+                  <Tag
+                    :value="`${slotProps.data.unique_visitors > 0 ? Math.round((slotProps.data.completions / slotProps.data.unique_visitors) * 100) : 0}%`"
+                    :severity="slotProps.data.unique_visitors > 0 && (slotProps.data.completions / slotProps.data.unique_visitors) >= 0.5 ? 'success' : 'warn'"
+                  />
+                </template>
+              </Column>
+            </DataTable>
+          </template>
+        </Card>
 
-        <h3>Escaneos por Día</h3>
-        <div class="overflow-auto">
-          <table>
-            <thead><tr><th>Fecha</th><th>Escaneos</th></tr></thead>
-            <tbody>
-              <tr v-for="day in formStatsData.scanTimeline" :key="day.date">
-                <td>{{ day.date }}</td>
-                <td>{{ day.count }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <!-- Timeline -->
+        <Card style="margin-bottom: 1.5rem;">
+          <template #title>Escaneos por Día</template>
+          <template #content>
+            <DataTable :value="formStatsData.scanTimeline" :rows="15" paginator striped-rows>
+              <Column field="date" header="Fecha" sortable />
+              <Column field="count" header="Escaneos" sortable />
+            </DataTable>
+          </template>
+        </Card>
 
-        <h3>Respuestas Recientes</h3>
-        <div class="overflow-auto">
-          <table>
-            <thead>
-              <tr>
-                <th>Estado</th>
-                <th>Paso Actual</th>
-                <th>Inicio</th>
-                <th>Datos del Usuario</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="r in formStatsData.recentResponses" :key="r.id">
-                <td>
-                  <span :style="{ color: r.status === 'completed' ? 'green' : 'orange' }">
-                    {{ r.status === 'completed' ? 'Completado' : 'En progreso' }}
-                  </span>
-                </td>
-                <td>{{ r.current_step }}</td>
-                <td>{{ new Date(r.started_at).toLocaleString() }}</td>
-                <td>{{ r.user_data ? summarizeUserData(r.user_data) : '-' }}</td>
-                <td>
-                  <NuxtLink v-if="r.user_profile_id" :to="`/admin/stats/users/${r.user_profile_id}`">
-                    Ver Usuario
-                  </NuxtLink>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <!-- Recent Responses -->
+        <Card>
+          <template #title>Respuestas Recientes</template>
+          <template #content>
+            <DataTable :value="formStatsData.recentResponses" :rows="15" paginator striped-rows>
+              <Column header="Estado">
+                <template #body="slotProps">
+                  <Tag
+                    :value="slotProps.data.status === 'completed' ? 'Completado' : 'En progreso'"
+                    :severity="slotProps.data.status === 'completed' ? 'success' : 'warn'"
+                  />
+                </template>
+              </Column>
+              <Column field="current_step" header="Paso Actual" />
+              <Column header="Inicio">
+                <template #body="slotProps">
+                  {{ new Date(slotProps.data.started_at).toLocaleString() }}
+                </template>
+              </Column>
+              <Column header="Datos del Usuario">
+                <template #body="slotProps">
+                  {{ slotProps.data.user_data ? summarizeUserData(slotProps.data.user_data) : '-' }}
+                </template>
+              </Column>
+              <Column header="Acciones" style="width: 100px;">
+                <template #body="slotProps">
+                  <Button
+                    v-if="slotProps.data.user_profile_id"
+                    label="Ver"
+                    size="small"
+                    outlined
+                    @click="navigateTo(`/admin/stats/users/${slotProps.data.user_profile_id}`)"
+                  />
+                </template>
+              </Column>
+            </DataTable>
+          </template>
+        </Card>
       </template>
-    </div>
+    </template>
 
+    <!-- Overview -->
     <template v-else>
-      <div v-if="pending" aria-busy="true">Cargando...</div>
+      <ProgressSpinner v-if="pending" style="display: block; margin: 3rem auto;" />
       <template v-else-if="stats">
-        <div class="grid">
-          <article>
-            <header>Total Escaneos</header>
-            <h2>{{ stats.overview.totalScans }}</h2>
-          </article>
-          <article>
-            <header>Usuarios Únicos</header>
-            <h2>{{ stats.overview.uniqueUsers }}</h2>
-          </article>
-          <article>
-            <header>Tasa de Completitud</header>
-            <h2>{{ stats.overview.completionRate }}%</h2>
-          </article>
+        <!-- Overview Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+          <Card>
+            <template #content>
+              <div class="stat-card">
+                <div class="stat-value">{{ stats.overview.totalScans }}</div>
+                <div class="stat-label">Total Escaneos</div>
+              </div>
+            </template>
+          </Card>
+          <Card>
+            <template #content>
+              <div class="stat-card">
+                <div class="stat-value">{{ stats.overview.uniqueUsers }}</div>
+                <div class="stat-label">Usuarios Únicos</div>
+              </div>
+            </template>
+          </Card>
+          <Card>
+            <template #content>
+              <div class="stat-card">
+                <div class="stat-value">{{ stats.overview.completionRate }}%</div>
+                <div class="stat-label">Tasa de Completitud</div>
+              </div>
+            </template>
+          </Card>
         </div>
 
-        <h3>Estadísticas por Formulario</h3>
-        <div class="overflow-auto">
-          <table>
-            <thead>
-              <tr>
-                <th>Formulario</th>
-                <th>Escaneos</th>
-                <th>Visitantes</th>
-                <th>Respuestas</th>
-                <th>Completados</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="form in stats.formStats" :key="form.id">
-                <td>{{ form.name }}</td>
-                <td>{{ form.scan_count }}</td>
-                <td>{{ form.unique_visitors }}</td>
-                <td>{{ form.response_count }}</td>
-                <td>{{ form.completed_count }}</td>
-                <td>
-                  <button class="outline" @click="selectedFormId = form.id">
-                    Detalle
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <!-- Stats by Form -->
+        <Card style="margin-bottom: 1.5rem;">
+          <template #title>Estadísticas por Formulario</template>
+          <template #content>
+            <DataTable :value="stats.formStats" striped-rows>
+              <Column field="name" header="Formulario" />
+              <Column field="scan_count" header="Escaneos" sortable />
+              <Column field="unique_visitors" header="Visitantes" sortable />
+              <Column field="response_count" header="Respuestas" sortable />
+              <Column field="completed_count" header="Completados" sortable />
+              <Column header="" style="width: 100px;">
+                <template #body="slotProps">
+                  <Button label="Detalle" size="small" outlined @click="selectedFormId = slotProps.data.id" />
+                </template>
+              </Column>
+            </DataTable>
+          </template>
+        </Card>
 
-        <h3>Usuarios</h3>
-        <NuxtLink to="/admin/stats" @click.prevent="loadUsers">Ver todos los usuarios</NuxtLink>
-        <div v-if="usersData" class="overflow-auto" style="margin-top: 1rem;">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Datos</th>
-                <th>Formularios</th>
-                <th>Sesiones</th>
-                <th>Último Acceso</th>
-                <th>País</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="user in usersData.users" :key="user.id">
-                <td><code>{{ user.id.slice(0, 8) }}</code></td>
-                <td>{{ summarizeUserData(JSON.stringify(user.data)) }}</td>
-                <td>{{ user.forms_answered }}</td>
-                <td>{{ user.total_sessions }}</td>
-                <td>{{ user.last_seen ? new Date(user.last_seen).toLocaleString() : '-' }}</td>
-                <td>{{ user.last_country || '-' }}</td>
-                <td>
-                  <NuxtLink :to="`/admin/stats/users/${user.id}`">Ver</NuxtLink>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <!-- Users -->
+        <Card>
+          <template #title>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Usuarios</span>
+              <Button label="Cargar usuarios" icon="pi pi-users" size="small" severity="secondary" outlined @click="loadUsers" :loading="loadingUsers" />
+            </div>
+          </template>
+          <template #content>
+            <DataTable v-if="usersData" :value="usersData.users" :rows="15" paginator striped-rows>
+              <Column header="ID" style="width: 100px;">
+                <template #body="slotProps">
+                  <code style="font-size: 0.8rem;">{{ slotProps.data.id.slice(0, 8) }}</code>
+                </template>
+              </Column>
+              <Column header="Datos">
+                <template #body="slotProps">
+                  {{ summarizeUserData(JSON.stringify(slotProps.data.data)) }}
+                </template>
+              </Column>
+              <Column field="forms_answered" header="Formularios" sortable />
+              <Column field="total_sessions" header="Sesiones" sortable />
+              <Column header="Último Acceso">
+                <template #body="slotProps">
+                  {{ slotProps.data.last_seen ? new Date(slotProps.data.last_seen).toLocaleString() : '-' }}
+                </template>
+              </Column>
+              <Column field="last_country" header="País" />
+              <Column header="" style="width: 80px;">
+                <template #body="slotProps">
+                  <Button icon="pi pi-eye" size="small" text @click="navigateTo(`/admin/stats/users/${slotProps.data.id}`)" />
+                </template>
+              </Column>
+            </DataTable>
+            <p v-else style="color: var(--p-text-muted-color); text-align: center;">Haz clic en "Cargar usuarios" para ver la lista.</p>
+          </template>
+        </Card>
       </template>
     </template>
   </div>
@@ -182,13 +192,19 @@ const { data: formStatsData, pending: formStatsPending, execute: fetchFormStats 
 )
 
 const usersData = ref<any>(null)
+const loadingUsers = ref(false)
 
 watch(selectedFormId, (val) => {
   if (val) fetchFormStats()
 }, { immediate: true })
 
 async function loadUsers() {
-  usersData.value = await $fetch('/api/admin/stats/users')
+  loadingUsers.value = true
+  try {
+    usersData.value = await $fetch('/api/admin/stats/users')
+  } finally {
+    loadingUsers.value = false
+  }
 }
 
 function summarizeUserData(data: string): string {
@@ -201,7 +217,3 @@ function summarizeUserData(data: string): string {
   }
 }
 </script>
-
-<style scoped>
-.overflow-auto { overflow-x: auto; }
-</style>

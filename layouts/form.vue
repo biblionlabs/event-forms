@@ -1,5 +1,7 @@
 <template>
-  <main class="container" style="max-width: 640px; padding-top: 2rem;">
-    <slot />
-  </main>
+  <div class="form-layout">
+    <div class="form-container">
+      <slot />
+    </div>
+  </div>
 </template>

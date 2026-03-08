@@ -1,6 +1,9 @@
 <template>
   <div>
-    <h1>Nuevo Formulario</h1>
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+      <Button icon="pi pi-arrow-left" severity="secondary" text @click="navigateTo('/admin/forms')" />
+      <h2 style="margin: 0;">Nuevo Formulario</h2>
+    </div>
     <AdminFormBuilder @save="createForm" />
   </div>
 </template>
