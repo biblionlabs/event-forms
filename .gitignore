@@ -6,3 +6,9 @@
 **/*.rs.bk
 wasm-pack.log
 .dev.vars
+.nuxt/
+.output/
+dist/
+.data/
+.nitro/
+*.log

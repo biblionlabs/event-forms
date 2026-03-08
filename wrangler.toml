@@ -1,29 +1,25 @@
-name = "cfworker-template"
-workers_dev = true
-main = "build/worker/shim.mjs"
+name = "event-forms"
 compatibility_date = "2025-06-10"
+pages_build_output_dir = "dist/"
 
-# Docs: https://developers.cloudflare.com/workers/configuration/routing/routes/
-# routes = [
-#     { pattern = "subdomain.example.com/*", zone_name = "example.com" },
-# ]
+[vars]
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "changeme123"
+COOKIE_SECRET = "change-this-to-a-random-secret-key-at-least-32-chars"
 
-[build]
-command = "worker-build --release"
+[[d1_databases]]
+binding = "DB"
+database_name = "event-forms-db"
+database_id = "local"
+
+[durable_objects]
+bindings = [
+  { name = "STATS_DO", class_name = "StatsAggregator" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["StatsAggregator"]
 
 [observability]
 enabled = true
-
-[[rules]]
-globs = ["**/*.wasm"]
-type = "CompiledWasm"
-fallthrough = false
-
-# Cron Triggers
-# Docs: https://developers.cloudflare.com/workers/platform/triggers/cron-triggers/
-# Configuration: https://developers.cloudflare.com/workers/wrangler/configuration/#triggers
-# [triggers]
-# crons = ["0 22 * * *"]
-
-# Docs: https://developers.cloudflare.com/workers/configuration/environment-variables/
-[env.local.vars]
