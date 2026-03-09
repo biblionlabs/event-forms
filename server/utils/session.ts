@@ -52,7 +52,7 @@ export async function getOrCreateSession(event: H3Event): Promise<{ sessionId: s
   const geo = extractGeoData(event)
 
   const fpCookie = getCookie(event, 'ef_fingerprint')
-  const secret = event.context.cloudflare.env.COOKIE_SECRET || ''
+  const secret = getAppConfig(event).cookieSecret
   if (fpCookie) {
     fingerprint = await decryptCookieValue(fpCookie, secret)
     if (fingerprint) {

@@ -167,17 +167,10 @@ async function submitStep() {
 
     submitted.value = true
     nextStep.value = result.nextStep
-
-    if (result.thankYou) {
-      thankYouData.value = result.thankYou
-    } else if (result.nextStep) {
-      navigateTo(`/f/${formId}/${result.nextStep}`)
-    } else {
-      thankYouData.value = {
-        title: data.value?.form.thank_you_title || 'Gracias',
-        message: data.value?.form.thank_you_message || 'Tu respuesta ha sido registrada.',
-        image_url: data.value?.form.thank_you_image_url || ''
-      }
+    thankYouData.value = result.thankYou || {
+      title: 'Gracias',
+      message: 'Tu respuesta ha sido registrada.',
+      image_url: ''
     }
   } catch (err: any) {
     submitError.value = err?.data?.statusMessage || err?.message || 'Error al enviar el formulario'

@@ -37,8 +37,8 @@ export default defineEventHandler(async (event) => {
       if (step.fields && Array.isArray(step.fields)) {
         for (const field of step.fields) {
           await db.prepare(
-            `INSERT INTO form_fields (id, step_id, form_id, field_key, label, field_type, placeholder, options, validations, is_required, is_identifier, is_cookie, sort_order)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            `INSERT INTO form_fields (id, step_id, form_id, field_key, label, field_type, placeholder, options, validations, is_required, is_identifier, is_cookie, is_session_required, sort_order)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
           ).bind(
             field.id || generateId(), stepId, id, field.field_key, field.label,
             field.field_type || 'text', field.placeholder || '',
@@ -47,6 +47,7 @@ export default defineEventHandler(async (event) => {
             field.is_required ? 1 : 0,
             field.is_identifier ? 1 : 0,
             field.is_cookie ? 1 : 0,
+            field.is_session_required ? 1 : 0,
             field.sort_order || 0
           ).run()
         }

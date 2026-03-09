@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const session = await getOrCreateSession(event)
-  const secret = event.context.cloudflare.env.COOKIE_SECRET || ''
+  const secret = getAppConfig(event).cookieSecret
   const identifierFields = JSON.parse((form.identifier_fields as string) || '[]') as string[]
   const cookieFieldKeys = JSON.parse((form.cookie_fields as string) || '[]') as string[]
 
@@ -144,14 +144,32 @@ export default defineEventHandler(async (event) => {
 
   const nextStep = isCompleted ? null : stepNum + 1
 
+  // Always return a thankYou - use step-level if configured, else defaults
+  let thankYou
+  if (isCompleted) {
+    thankYou = {
+      title: (form.thank_you_title as string) || 'Gracias',
+      message: (form.thank_you_message as string) || 'Tu respuesta ha sido registrada exitosamente.',
+      image_url: (form.thank_you_image_url as string) || ''
+    }
+  } else if (step.thank_you_title) {
+    thankYou = {
+      title: step.thank_you_title as string,
+      message: (step.thank_you_message as string) || '',
+      image_url: (step.thank_you_image_url as string) || ''
+    }
+  } else {
+    thankYou = {
+      title: 'Paso completado',
+      message: `Has completado el paso ${stepNum}. Continúa con el siguiente.`,
+      image_url: ''
+    }
+  }
+
   return {
     success: true,
     isCompleted,
     nextStep,
-    thankYou: isCompleted
-      ? { title: form.thank_you_title, message: form.thank_you_message, image_url: form.thank_you_image_url }
-      : step.thank_you_title
-        ? { title: step.thank_you_title, message: step.thank_you_message, image_url: step.thank_you_image_url }
-        : null
+    thankYou
   }
 })

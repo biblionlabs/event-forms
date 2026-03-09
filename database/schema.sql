@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS form_fields (
   is_required INTEGER DEFAULT 0,
   is_identifier INTEGER DEFAULT 0,
   is_cookie INTEGER DEFAULT 0,
+  is_session_required INTEGER DEFAULT 0,
   sort_order INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (step_id) REFERENCES form_steps(id) ON DELETE CASCADE,

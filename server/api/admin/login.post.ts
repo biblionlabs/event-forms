@@ -2,8 +2,8 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const { username, password } = body
 
-  const env = event.context.cloudflare.env
-  if (username === env.ADMIN_USERNAME && password === env.ADMIN_PASSWORD) {
+  const config = getAppConfig(event)
+  if (username === config.adminUsername && password === config.adminPassword) {
     const token = btoa(`${username}:${password}`)
     setCookie(event, 'admin_session', token, {
       httpOnly: true,
